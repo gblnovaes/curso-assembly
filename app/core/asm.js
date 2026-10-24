@@ -247,7 +247,7 @@
       if (t.t === 'dollar') { pos++; return { v: ctx.here, reloc: true, unknown: false }; }
       if (t.t === 'op' && t.v === '(') {
         pos++;
-        const r = additive();
+        const r = relational();
         if (!isOp(')')) throw new AsmError('Falta ")" na expressão');
         pos++;
         return r;
@@ -314,7 +314,20 @@
         } else return l;
       }
     }
-    const r = additive();
+    // EQ, NE, LT, LE, GT, GE (usados no IF): verdadeiro = -1 (0FFFFh), falso = 0, como no MASM
+    function relational() {
+      let l = additive();
+      for (;;) {
+        const t = toks[pos];
+        if (!(t && t.t === 'id' && ['EQ', 'NE', 'LT', 'LE', 'GT', 'GE'].includes(t.v))) return l;
+        pos++;
+        const r = additive();
+        const a = l.v, b = r.v;
+        const ok = t.v === 'EQ' ? a === b : t.v === 'NE' ? a !== b : t.v === 'LT' ? a < b : t.v === 'LE' ? a <= b : t.v === 'GT' ? a > b : a >= b;
+        l = { v: ok ? -1 : 0, reloc: false, unknown: l.unknown || r.unknown };
+      }
+    }
+    const r = relational();
     if (pos < toks.length) throw new AsmError('Sobrou texto na expressão: ' + toksToStr(toks.slice(pos)));
     return r;
   }
@@ -345,7 +358,10 @@
     const procStack = [];
     let stmts = [];
 
-    const err = (line, msg) => errors.push({ line, msg });
+    let curMac = null;           // macro sendo expandida na linha atual (para as mensagens)
+    const comMacro = (msg, mac) => mac ? msg + ' (na expansão da macro ' + mac + ')' : msg;
+    const err = (line, msg) => errors.push({ line, msg: comMacro(msg, curMac) });
+    const errSt = (st, msg) => errors.push({ line: st.line, msg: comMacro(msg, st.macro) });
     const warn = (line, msg) => warnings.push({ line, msg });
 
     function getSeg(name, kind) {
@@ -383,12 +399,287 @@
       return sym;
     }
 
+    // NOME.CAMPO, ESTRUT.CAMPO e .CAMPO: soma os deslocamentos dos campos.
+    // Devolve { base: símbolo da variável ou null, off, type: tamanho do último campo } ou null.
+    function dotted(name, stmt) {
+      const parts = name.split('.');
+      if (parts.length < 2 || parts.slice(1).some(x => !x)) return null;
+      let base = null, off = 0, type = 0;
+      if (parts[0] !== '') {
+        const s = stmt ? lookup(parts[0], stmt) : symbols.get(parts[0]);
+        if (!s) return null;
+        if (s.kind === 'struc') base = null;
+        else if (s.kind === 'var' || s.kind === 'label') base = s;
+        else return null;
+      }
+      for (const f of parts.slice(1)) {
+        const fs = symbols.get(f);
+        if (!fs || fs.kind !== 'field') throw new AsmError('"' + f + '" não é um campo de estrutura (em ' + name + ').');
+        off += fs.offset; type = fs.type;
+      }
+      return { base, off, type };
+    }
+
+    // ---------------- Macros, repetições e montagem condicional ----------------
+    // As linhas passam por uma fila: a chamada de uma macro (ou um REPT/IRP/IRPC)
+    // insere o corpo expandido logo depois dela, com o número da linha da chamada.
+    const queue = lines.map((t, i) => ({ t, n: i + 1, mac: null, exp: 0, depth: 0 }));
+    const macros = new Map();    // NOME -> { params, locals, body, line }
+    const conds = [];            // pilha de IF: { active, taken, parent, line }
+    let collecting = null;       // corpo de MACRO/REPT/IRP/IRPC sendo lido
+    let localCount = 0, expCount = 0, expandedLines = 0;
+    const expCondBase = new Map();
+    let curStruc = null;         // STRUC aberta
+    const constAlias = new Map(); // NOME definido com = -> versão atual (NOME??2, ...)
+    const condActive = () => !conds.length || conds[conds.length - 1].active;
+    const OPENERS = ['REPT', 'IRP', 'IRPC'];
+
+    // separa argumentos por vírgula respeitando <...>, aspas, () e []
+    function splitArgs(s) {
+      const out = [];
+      let depth = 0, ang = 0, q = null, cur = '', strip = false;
+      for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (q) { cur += c; if (c === q) q = null; continue; }
+        if (c === '\'' || c === '"') { q = c; cur += c; continue; }
+        if (c === '!' && ang && i + 1 < s.length) { cur += s[++i]; continue; }
+        // <...> no começo de um argumento agrupa (e some); no meio, fica no texto
+        if (c === '<') { if (ang++ === 0 && cur.trim() === '') { strip = true; continue; } }
+        else if (c === '>' && ang) { if (--ang === 0 && strip) { strip = false; continue; } }
+        else if (c === '(' || c === '[') depth++;
+        else if (c === ')' || c === ']') depth--;
+        if (c === ',' && depth === 0 && ang === 0) { out.push(cur.trim()); cur = ''; continue; }
+        cur += c;
+      }
+      if (cur.trim() !== '' || out.length || s.trim() !== '') out.push(cur.trim());
+      return out;
+    }
+    // troca parâmetros pelo valor (fora de aspas: nome inteiro; dentro: só com &)
+    function substParams(line, map) {
+      if (!map.size) return line;
+      let out = '', i = 0, q = null;
+      while (i < line.length) {
+        const c = line[i];
+        if (q) {
+          if (c === q) { q = null; out += c; i++; continue; }
+          if (c === '&') {
+            const m = /^&([A-Za-z_@$?][\w@$?]*)&?/.exec(line.slice(i));
+            if (m && map.has(m[1].toUpperCase())) { out += map.get(m[1].toUpperCase()); i += m[0].length; continue; }
+          }
+          const m = /^([A-Za-z_@$?][\w@$?]*)&/.exec(line.slice(i));
+          if (m && map.has(m[1].toUpperCase()) && !/[\w@$?]/.test(line[i - 1] || '')) { out += map.get(m[1].toUpperCase()); i += m[0].length; continue; }
+          out += c; i++; continue;
+        }
+        if (c === '\'' || c === '"') { q = c; out += c; i++; continue; }
+        if (c === '&') { i++; continue; }
+        const m = /^[\w@$?]+/.exec(line.slice(i));
+        if (m) {
+          const w = m[0];
+          out += (/^[A-Za-z_@$?]/.test(w) && map.has(w.toUpperCase())) ? map.get(w.toUpperCase()) : w;
+          i += w.length; continue;
+        }
+        out += c; i++;
+      }
+      return out;
+    }
+    // troca cada nome definido com = pela versão atual (o valor vale do ponto da definição em diante)
+    function applyAlias(text) {
+      if (!constAlias.size) return text;
+      let out = '', i = 0, q = null;
+      while (i < text.length) {
+        const c = text[i];
+        if (q) { out += c; if (c === q) q = null; i++; continue; }
+        if (c === '\'' || c === '"') { q = c; out += c; i++; continue; }
+        const m = /^[\w@$?.]+/.exec(text.slice(i));
+        if (m) {
+          const w = m[0], u = w.toUpperCase();
+          out += (/^[A-Za-z_@$?]/.test(w) && constAlias.has(u)) ? constAlias.get(u) : w;
+          i += w.length; continue;
+        }
+        out += c; i++;
+      }
+      return out;
+    }
+    function constExpr(text) {
+      return evalExpr(tokenize(applyAlias(text)), constCtx());
+    }
+    function expand(entry, bodyLines, map, mac) {
+      if (entry.depth >= 40) throw new AsmError('Macros aninhadas fundo demais (mais de 40 níveis): há uma macro chamando a si mesma sem parar?');
+      expandedLines += bodyLines.length;
+      if (expandedLines > 50000) throw new AsmError('A expansão de macros passou de 50.000 linhas: verifique REPT e chamadas recursivas.');
+      const exp = ++expCount;
+      expCondBase.set(exp, conds.length);
+      return bodyLines.map(t => ({ t: substParams(t, map), n: entry.n, mac: mac || entry.mac, exp, depth: entry.depth + 1 }));
+    }
+    function condDirective(w1, rest, lineNo) {
+      const parentActive = condActive();
+      const isIf = /^IF(E|1|2|DEF|NDEF|B|NB|IDN|IDNI|DIF|DIFI)?$/.test(w1);
+      if (isIf) {
+        if (!parentActive) { conds.push({ active: false, taken: true, parent: false, line: lineNo }); return true; }
+        let v;
+        const args = () => splitArgs(rest);
+        const has = (n) => { n = n.toUpperCase(); return symbols.has(n) || macros.has(n) || textEqu.has(n) || constAlias.has(n); };
+        switch (w1) {
+          case 'IF': v = constExpr(rest).v !== 0; break;
+          case 'IFE': v = constExpr(rest).v === 0; break;
+          case 'IF1': v = true; break;
+          case 'IF2': v = false; break;
+          case 'IFDEF': v = has(rest.trim()); break;
+          case 'IFNDEF': v = !has(rest.trim()); break;
+          case 'IFB': v = (args()[0] || '') === ''; break;
+          case 'IFNB': v = (args()[0] || '') !== ''; break;
+          case 'IFIDN': case 'IFDIF': { const a = args(); v = (a[0] || '') === (a[1] || ''); if (w1 === 'IFDIF') v = !v; break; }
+          case 'IFIDNI': case 'IFDIFI': { const a = args(); v = (a[0] || '').toUpperCase() === (a[1] || '').toUpperCase(); if (w1 === 'IFDIFI') v = !v; break; }
+        }
+        conds.push({ active: v, taken: v, parent: true, line: lineNo });
+        return true;
+      }
+      if (w1 === 'ELSE' || w1 === 'ELSEIF' || w1 === 'ELSEIFE') {
+        const top = conds[conds.length - 1];
+        if (!top) throw new AsmError(w1 + ' sem IF correspondente.');
+        if (w1 === 'ELSE') { top.active = top.parent && !top.taken; top.taken = true; }
+        else if (top.taken || !top.parent) top.active = false;
+        else { let v = constExpr(rest).v !== 0; if (w1 === 'ELSEIFE') v = !v; top.active = v; top.taken = v; }
+        return true;
+      }
+      if (w1 === 'ENDIF') {
+        if (!conds.length) throw new AsmError('ENDIF sem IF correspondente.');
+        conds.pop();
+        return true;
+      }
+      return false;
+    }
+    // bytes ocupados por uma lista de itens de dados (precisa ser conhecido já no passo 1, para STRUC)
+    function itemsSize(items, unit) {
+      let n = 0;
+      for (const it of items) {
+        if (it.dup) {
+          const c = evalExpr(it.dup, constCtx()).v;
+          n += c * itemsSize(it.items, unit);
+        } else if (it.str !== undefined && (unit === 1 || !it.small)) n += it.str.length;
+        else n += unit;
+      }
+      return n;
+    }
+    // instância de estrutura: NOME ESTRUT <...>, 3 DUP(<...>)
+    function strucInstance(lineNo, name, S, initText, seg) {
+      const label = { kind: 'label', line: lineNo, seg };
+      seg.stmts.push(label);
+      if (name) {
+        define(lineNo, name, { kind: 'var', seg, stmt: label, type: S.size, struc: S });
+        label.sym = name;
+      }
+      let count = 0;
+      const one = (inner) => {
+        const vals = inner === null ? [] : splitArgs(inner);
+        if (vals.length > S.fields.length) throw new AsmError('A estrutura ' + S.name + ' tem só ' + S.fields.length + ' campos, mas foram dados ' + vals.length + ' valores.');
+        S.fields.forEach((f, k) => {
+          const v = vals[k];
+          if (v === undefined || v === '') { seg.stmts.push({ kind: 'data', line: lineNo, seg, unit: f.unit, items: f.items, macro: curMac }); return; }
+          const items = splitTopLevel(v, ',').map(parseDataItem);
+          const sz = itemsSize(items, f.unit);
+          if (sz > f.size) throw new AsmError('O valor ' + v + ' não cabe no campo ' + f.name + ' (' + f.size + ' bytes).');
+          seg.stmts.push({ kind: 'data', line: lineNo, seg, unit: f.unit, items, macro: curMac });
+          // o que sobra do campo: espaços se o valor padrão é um texto, zeros nos outros casos
+          const fill = f.items[0] && f.items[0].str !== undefined ? 32 : 0;
+          if (sz < f.size) seg.stmts.push({ kind: 'data', line: lineNo, seg, unit: 1, items: [{ dup: [{ t: 'num', v: f.size - sz }], items: [{ toks: [{ t: 'num', v: fill }] }] }] });
+        });
+        count++;
+      };
+      const list = splitArgs(initText);
+      if (!list.length) throw new AsmError('Falta o valor inicial da estrutura ' + S.name + ': use <> para os valores padrão.');
+      for (const item of list) {
+        // splitArgs tira os <> de fora; DUP(<...>) chega inteiro
+        const m = /^(.+?)\s+DUP\s*\((.*)\)$/i.exec(item);
+        if (m) {
+          const n = constExpr(m[1]).v;
+          const inner = m[2].trim();
+          const im = /^<(.*)>$/.exec(inner);
+          if (!im && inner !== '?') throw new AsmError('Use N DUP(<...>) para repetir a estrutura ' + S.name + '.');
+          for (let k = 0; k < n; k++) one(im ? im[1] : null);
+        } else if (item === '?') one(null);
+        else one(item);
+      }
+      label.count = count;
+    }
+
     // ---------------- Passo 1: análise sintática ----------------
-    for (let li = 0; li < lines.length; li++) {
-      const lineNo = li + 1;
-      let text = stripComment(lines[li]).trim();
+    for (let qi = 0; qi < queue.length; qi++) {
+      const entry = queue[qi];
+      const lineNo = entry.n;
+      curMac = entry.mac;
+      let text = stripComment(entry.t).trim();
       if (!text) continue;
       try {
+        let words = text.split(/\s+/);
+        let w1 = words[0].toUpperCase();
+        let w2 = (words[1] || '').toUpperCase();
+        // corpo de MACRO/REPT/IRP/IRPC: guarda as linhas até o ENDM correspondente
+        if (collecting) {
+          if (w2 === 'MACRO' || OPENERS.includes(w1)) collecting.depth++;
+          if (w1 === 'ENDM' || (w2 === 'ENDM' && words.length === 2)) {
+            if (collecting.depth-- === 0) {
+              const c = collecting; collecting = null;
+              if (c.kind === 'MACRO') macros.set(c.name, c);
+              else {
+                let out = [];
+                if (c.kind === 'REPT') for (let k = 0; k < c.count; k++) out = out.concat(expand(entry, c.body, new Map(), null));
+                else for (const v of c.values) out = out.concat(expand(entry, c.body, new Map([[c.param, v]]), null));
+                queue.splice(qi + 1, 0, ...out);
+              }
+              continue;
+            }
+          }
+          collecting.body.push(text);
+          continue;
+        }
+        // IF / ELSE / ENDIF
+        if (condDirective(w1, text.slice(words[0].length).trim(), lineNo)) continue;
+        if (!condActive()) continue;
+        // definição de macro e repetições
+        if (w2 === 'MACRO') {
+          const name = words[0].toUpperCase();
+          if (REG16.includes(name) || REG8.includes(name) || SREG.includes(name)) throw new AsmError('"' + name + '" é um registrador e não pode ser nome de macro.');
+          const params = splitArgs(text.replace(/^\S+\s+\S+/, '').trim()).filter(Boolean).map(x => x.split(':')[0].trim().toUpperCase());
+          collecting = { kind: 'MACRO', name, params, body: [], depth: 0, line: lineNo };
+          continue;
+        }
+        if (w1 === 'REPT') {
+          const r = constExpr(text.slice(4).trim());
+          if (r.v < 0 || r.v > 10000) throw new AsmError('REPT ' + r.v + ': o número de repetições precisa estar entre 0 e 10000.');
+          collecting = { kind: 'REPT', count: r.v, body: [], depth: 0, line: lineNo };
+          continue;
+        }
+        if (w1 === 'IRP' || w1 === 'IRPC') {
+          const m = /^\S+\s+([A-Za-z_@$?][\w@$?]*)\s*,\s*(.*)$/.exec(text);
+          if (!m) throw new AsmError(w1 + ' precisa de um parâmetro e uma lista: ' + (w1 === 'IRP' ? 'IRP R,<AX,BX,CX>' : 'IRPC C,ABC'));
+          let values;
+          if (w1 === 'IRP') values = splitArgs(m[2].trim().replace(/^<(.*)>$/, '$1'));
+          else values = m[2].trim().replace(/^<(.*)>$/, '$1').split('');
+          collecting = { kind: w1, param: m[1].toUpperCase(), values, body: [], depth: 0, line: lineNo };
+          continue;
+        }
+        if (w1 === 'ENDM') throw new AsmError('ENDM sem MACRO, REPT, IRP ou IRPC aberto.');
+        if (w1 === 'EXITM') {
+          if (!entry.exp) throw new AsmError('EXITM só pode aparecer dentro de uma macro.');
+          // descarta o resto desta expansão e os IFs abertos dentro dela
+          let k = qi + 1;
+          while (k < queue.length && queue[k].exp === entry.exp) k++;
+          queue.splice(qi + 1, k - qi - 1);
+          const base = expCondBase.get(entry.exp);
+          if (conds.length > base) conds.length = base;
+          continue;
+        }
+        if (w1 === 'PURGE') { for (const n of text.slice(5).split(',')) macros.delete(n.trim().toUpperCase()); continue; }
+        if (w1 === 'LOCAL') {
+          if (!entry.exp) throw new AsmError('LOCAL só pode aparecer dentro de uma macro.');
+          continue;
+        }
+        // nomes definidos com = valem com o valor do ponto atual
+        {
+          const mEq = /^([A-Za-z_@$?][\w@$?]*)\s*=\s*(.+)$/.exec(text);
+          text = mEq ? mEq[1] + ' = ' + applyAlias(mEq[2]) : applyAlias(text);
+        }
         // Rótulo "nome:" no início da linha
         let m = /^([A-Za-z_@$?][\w@$?]*)\s*::?(?!\S*\[)/.exec(text);
         if (m && !SREG.includes(m[1].toUpperCase())) {
@@ -401,20 +692,78 @@
           text = text.slice(m[0].length).trim();
           if (!text) continue;
         }
-        // NOME = expr
+        // chamada de macro
+        {
+          const mn = text.split(/\s+/)[0].toUpperCase();
+          const mac = macros.get(mn);
+          if (mac) {
+            const args = splitArgs(text.slice(mn.length).trim()).map(a => {
+              const pm = /^%(.*)$/.exec(a);
+              return pm ? String(constExpr(pm[1]).v) : a;
+            });
+            if (args.length > mac.params.length) warn(lineNo, 'A macro ' + mn + ' tem ' + mac.params.length + ' parâmetro(s), mas recebeu ' + args.length + ': os que sobraram foram ignorados.');
+            const map = new Map(mac.params.map((p, k) => [p, args[k] !== undefined ? args[k] : '']));
+            const body = [];
+            for (const l of mac.body) {
+              const lm = /^LOCAL\s+(.*)$/i.exec(l);
+              if (lm) { for (const n of lm[1].split(',')) map.set(n.trim().toUpperCase(), '??' + (localCount++).toString(16).toUpperCase().padStart(4, '0')); }
+              else body.push(l);
+            }
+            queue.splice(qi + 1, 0, ...expand(entry, body, map, mn));
+            continue;
+          }
+        }
+        // NOME = expr (pode ser redefinido; cada redefinição vira uma versão nova)
         if ((m = /^([A-Za-z_@$?][\w@$?]*)\s*=\s*(.+)$/.exec(text))) {
           const name = m[1].toUpperCase();
           const toks = tokenize(m[2]);
-          let s = symbols.get(name);
-          if (!s) s = define(lineNo, name, { kind: 'const', toks, redefinable: true });
-          else if (s.kind === 'const' && s.redefinable) s.toks = toks;
-          else err(lineNo, 'Símbolo "' + name + '" já definido.');
+          const s = symbols.get(name);
+          if (!s) define(lineNo, name, { kind: 'const', toks, redefinable: true });
+          else if (s.kind === 'const' && s.redefinable) {
+            s.versions = (s.versions || 1) + 1;
+            const vname = name + '??' + s.versions;
+            define(lineNo, vname, { kind: 'const', toks, redefinable: true, hidden: true });
+            constAlias.set(name, vname);
+          } else err(lineNo, 'Símbolo "' + name + '" já definido.');
           continue;
         }
-        const words = text.split(/\s+/);
-        const w1 = words[0].toUpperCase();
-        const w2 = (words[1] || '').toUpperCase();
+        words = text.split(/\s+/);
+        w1 = words[0].toUpperCase();
+        w2 = (words[1] || '').toUpperCase();
         const restAfter = (n) => text.replace(/^\S+/, '').trim().replace(n === 2 ? /^\S+/ : /^/, '').trim();
+
+        // STRUC: campos com deslocamento a partir de 0
+        if (w2 === 'STRUC' || w2 === 'STRUCT') {
+          if (curStruc) throw new AsmError('STRUC dentro de STRUC não é suportado: feche ' + curStruc.name + ' com ENDS antes.');
+          curStruc = { name: words[0].toUpperCase(), fields: [], size: 0, line: lineNo };
+          continue;
+        }
+        if (curStruc) {
+          if (w2 === 'ENDS' || w1 === 'ENDS') {
+            if (w2 === 'ENDS' && words[0].toUpperCase() !== curStruc.name) throw new AsmError('ENDS de "' + words[0].toUpperCase() + '" mas a estrutura aberta é "' + curStruc.name + '".');
+            const S = curStruc; curStruc = null;
+            define(S.line, S.name, { kind: 'struc', type: S.size, size: S.size, fields: S.fields, struc: S });
+            continue;
+          }
+          const DIRS = ['DB', 'DW', 'DD', 'DQ', 'DT'];
+          const named = DIRS.includes(w2);
+          if (!named && !DIRS.includes(w1)) throw new AsmError('Dentro de STRUC só podem aparecer campos (DB, DW, DD, DQ ou DT). Feche com ' + curStruc.name + ' ENDS.');
+          const dir = named ? w2 : w1;
+          const unit = { DB: 1, DW: 2, DD: 4, DQ: 8, DT: 10 }[dir];
+          const items = splitTopLevel(named ? restAfter(2) : restAfter(1), ',').map(parseDataItem);
+          const size = itemsSize(items, unit);
+          const f = { name: named ? words[0].toUpperCase() : null, unit, items, size, offset: curStruc.size };
+          if (f.name) define(lineNo, f.name, { kind: 'field', type: unit, offset: f.offset, size, strucName: curStruc.name });
+          curStruc.fields.push(f);
+          curStruc.size += size;
+          continue;
+        }
+        // instância de estrutura
+        {
+          const sA = symbols.get(w1), sB = symbols.get(w2);
+          if (sB && sB.kind === 'struc') { strucInstance(lineNo, words[0].toUpperCase(), sB.struc, restAfter(2), ensureSeg(lineNo)); continue; }
+          if (sA && sA.kind === 'struc') { strucInstance(lineNo, null, sA.struc, restAfter(1), ensureSeg(lineNo)); continue; }
+        }
 
         // Diretivas com nome
         const DIRS = ['DB', 'DW', 'DD', 'DQ', 'DT'];
@@ -425,7 +774,7 @@
           const unit = { DB: 1, DW: 2, DD: 4, DQ: 8, DT: 10 }[dir];
           const items = splitTopLevel(named ? restAfter(2) : restAfter(1), ',');
           if (!items.length || items[0] === '') { err(lineNo, dir + ' sem valores. Use ? para reservar sem valor inicial.'); continue; }
-          const stmt = { kind: 'data', line: lineNo, seg, unit, items: items.map(parseDataItem) };
+          const stmt = { kind: 'data', line: lineNo, seg, unit, items: items.map(parseDataItem), macro: curMac };
           if (named) {
             const name = words[0].toUpperCase();
             define(lineNo, name, { kind: 'var', seg, stmt, type: unit });
@@ -496,7 +845,6 @@
           continue;
         }
         if (w2 === 'ENDS') { curSeg = null; continue; }
-        if (w2 === 'MACRO') { err(lineNo, 'Macros (MACRO/ENDM) não são suportadas por este montador: escreva o código direto ou use um PROC.'); continue; }
 
         // Diretivas com ponto
         if (w1.startsWith('.')) {
@@ -528,7 +876,7 @@
               seg.stmts.push(parseInstr('INT 21h', lineNo, seg));
               break;
             }
-            case '.8086': case '.8087': break;
+            case '.8086': case '.8087': case '.LALL': case '.SALL': case '.XALL': case '.LIST': case '.XLIST': break;
             case '.186': case '.286': case '.386': case '.486': case '.586':
               err(lineNo, w1 + ' habilita instruções de processadores posteriores. Este curso é sobre o 8086 original: remova a diretiva.'); break;
             default: warn(lineNo, 'Diretiva ' + w1 + ' ignorada pelo simulador.');
@@ -536,7 +884,7 @@
           continue;
         }
         switch (w1) {
-          case 'END': endLabel = w2 || null; li = lines.length; continue;
+          case 'END': endLabel = w2 || null; qi = queue.length; continue;
           case 'ASSUME': case 'TITLE': case 'PAGE': case 'SUBTTL': case 'NAME': case 'PUBLIC': case 'EXTRN': case 'DOSSEG': case '%OUT':
             continue;
           case 'LOCALS': case 'JUMPS': case 'IDEAL': case 'MASM':
@@ -559,12 +907,17 @@
         if (seg.kind === 'stack') { err(lineNo, 'Instrução dentro do segmento de pilha.'); continue; }
         const st = parseInstr(text, lineNo, seg);
         st.proc = curProc;
+        st.macro = curMac;
         seg.stmts.push(st);
       } catch (e) {
         if (e.asm) err(lineNo, e.message); else throw e;
       }
     }
+    curMac = null;
     if (curProc) err(curProc.line, 'PROC "' + curProc.name + '" sem ENDP.');
+    if (collecting) err(collecting.line, collecting.kind + (collecting.name ? ' "' + collecting.name + '"' : '') + ' sem ENDM.');
+    if (conds.length) err(conds[conds.length - 1].line, 'IF sem ENDIF.');
+    if (curStruc) err(curStruc.line, 'STRUC "' + curStruc.name + '" sem ENDS.');
 
     function constCtx() {
       return {
@@ -572,10 +925,19 @@
         sym: (n) => {
           const s = symbols.get(n);
           if (s && s.kind === 'const') return evalExpr(s.toks, constCtx());
+          if (s && s.kind === 'field') return { v: s.offset, reloc: false, unknown: false };
+          if (s && s.kind === 'struc') return { v: s.size, reloc: false, unknown: false };
+          const d = n.includes('.') ? dotted(n, null) : null;
+          if (d && !d.base) return { v: d.off, reloc: false, unknown: false };
           throw new AsmError('"' + n + '" precisa ser uma constante já definida.');
         },
         segOf: () => { throw new AsmError('SEG não permitido aqui'); },
-        attr: () => { throw new AsmError('Operador não permitido aqui'); }
+        attr: (op, n) => {
+          const s = symbols.get(n);
+          if (s && (s.kind === 'struc' || s.kind === 'field')) return { v: op === 'LENGTH' || op === 'LENGTHOF' ? 1 : (op === 'TYPE' ? s.type : s.size), reloc: false, unknown: false };
+          if (s && s.kind === 'var' && s.struc) return { v: op === 'TYPE' ? s.type : op.startsWith('LENGTH') ? (s.stmt.count || 1) : s.type * (s.stmt.count || 1), reloc: false, unknown: false };
+          throw new AsmError('Operador ' + op + ' não permitido aqui');
+        }
       };
     }
 
@@ -650,6 +1012,17 @@
 
     function classifyOperand(raw, stmt) {
       let toks = textEquExpand(tokenize(raw), 0);
+      // [BX].CAMPO -> [BX]+.CAMPO; guarda o tipo do campo para o tamanho do operando
+      let fieldSize = 0;
+      for (let i = 0; i < toks.length; i++) {
+        const t = toks[i];
+        if (t.t !== 'id' || !t.v.includes('.') || t.v.startsWith('@@')) continue;
+        const d = dotted(t.v, stmt);
+        if (!d) continue;
+        fieldSize = d.type;
+        const p = toks[i - 1];
+        if (t.v.startsWith('.') && p && p.t === 'op' && (p.v === ']' || p.v === ')')) { toks.splice(i, 0, { t: 'op', v: '+' }); i++; }
+      }
       const op = { size: 0, seg: null, dist: null };
       // prefixos de tamanho / distância
       for (;;) {
@@ -690,6 +1063,7 @@
           const s = lookup(t.v, stmt);
           const guarded = prev && prev.t === 'id' && ['OFFSET', 'SEG', 'LENGTH', 'SIZE', 'TYPE', 'LENGTHOF', 'SIZEOF'].includes(prev.v);
           if (s && s.kind === 'var' && !guarded) isMem = true;
+          if (!s && t.v.includes('.') && !guarded && !t.v.startsWith('@@')) { const d = dotted(t.v, stmt); if (d && d.base && d.base.kind === 'var') isMem = true; }
           if (REG16.includes(t.v) || REG8.includes(t.v)) {
             if (!isMem && !toks.some(x => x.t === 'op' && x.v === '[')) throw new AsmError('Registrador "' + t.v + '" usado em expressão. Para acessar memória, use colchetes: [' + t.v + '].');
           }
@@ -765,14 +1139,17 @@
         }
         for (const t of term.toks) {
           if (t.t === 'id') {
-            const s = lookup(t.v, stmt);
-            if (s && s.kind === 'var' && !symType) symType = s.type;
+            let s = lookup(t.v, stmt);
+            if (!s && t.v.includes('.') && !t.v.startsWith('@@')) { const d = dotted(t.v, stmt); s = d && d.base; }
+            if (s && s.kind === 'var' && !symType) symType = s.struc ? -1 : s.type;
             if (s && (s.kind === 'var' || s.kind === 'label' || s.kind === 'proc')) reloc = true;
           }
         }
         if (dispToks.length || term.sign === '-') dispToks.push({ t: 'op', v: term.sign });
         dispToks.push({ t: 'op', v: '(' }, ...term.toks, { t: 'op', v: ')' });
       }
+      if (fieldSize) symType = fieldSize;
+      if (symType < 0) symType = 0;
       return Object.assign(op, { t: 'm', base, index, dispToks, symSize: symType, relocHint: reloc, size: op.size || (symType && symType <= 10 ? symType : 0) });
     }
 
@@ -782,7 +1159,7 @@
         try {
           st.ops = st.rawOps.map(r => classifyOperand(r, st));
         } catch (e) {
-          if (e.asm) { err(st.line, e.message); st.bad = true; } else throw e;
+          if (e.asm) { errSt(st, e.message); st.bad = true; } else throw e;
         }
       }
     }
@@ -815,6 +1192,16 @@
 
     function symValue(name, stmt, here) {
       const s = lookup(name, stmt);
+      if (!s && name.includes('.') && !name.startsWith('@@')) {
+        const d = dotted(name, stmt);
+        if (d) {
+          if (!d.base) return { v: d.off, reloc: false, unknown: false };
+          const b = symValue(d.base.name, stmt, here);
+          return Object.assign({}, b, { v: b.v + d.off });
+        }
+      }
+      if (s && s.kind === 'field') return { v: s.offset, reloc: false, unknown: false };
+      if (s && s.kind === 'struc') return { v: s.size, reloc: false, unknown: false };
       if (!s) {
         if (name === '@DATA') {
           if (model === 'tiny') return { v: PSP_SEG, reloc: false, unknown: false, seg: true };
@@ -858,6 +1245,11 @@
         attr: (op, n) => {
           const s = lookup(n, stmt);
           if (!s) { if (pass > 0) throw new AsmError('Símbolo desconhecido: ' + n); return { v: 1, reloc: false, unknown: true }; }
+          if (s.kind === 'struc' || s.kind === 'field') return { v: op === 'LENGTH' || op === 'LENGTHOF' ? 1 : (op === 'TYPE' ? s.type : s.size), reloc: false, unknown: false };
+          if (s.struc) {
+            const c = s.stmt.count || 1;
+            return { v: op === 'TYPE' ? s.type : op.startsWith('LENGTH') ? c : c * s.type, reloc: false, unknown: false };
+          }
           const type = typeof s.type === 'number' ? s.type : (s.type === 'far' ? 0xFFFE : 0xFFFF);
           const count = s.stmt && s.stmt.kind === 'data' ? (s.stmt.count || 1) : 1;
           if (op === 'TYPE') return { v: type, reloc: false, unknown: false };
@@ -1555,7 +1947,7 @@
               listing.push({ line: st.line, seg: seg.base, off: st.offset, bytes: [], kind: st.kind });
             }
           } catch (e) {
-            if (e.asm) err(st.line, e.message); else throw e;
+            if (e.asm) errSt(st, e.message); else throw e;
           }
         }
       }
@@ -1597,9 +1989,11 @@
     // tabela de símbolos pública
     const symTable = {};
     for (const [k, s] of symbols) {
+      if (s.hidden) continue;
+      if (s.kind === 'field' || s.kind === 'struc') { symTable[k] = { kind: s.kind, value: s.kind === 'field' ? s.offset : s.size }; continue; }
       if (!s.stmt && s.kind !== 'const') continue;
       try {
-        if (s.kind === 'const') { symTable[k] = { kind: 'const', value: symValue(k, null, 0).v }; continue; }
+        if (s.kind === 'const') { symTable[k] = { kind: 'const', value: symValue(constAlias.get(k) || k, null, 0).v }; continue; }
         if (s.stmt.offset === undefined) continue;
         const segv = model === 'small' && s.seg.kind !== 'code' ? dgroupBase : s.seg.base;
         symTable[k] = {

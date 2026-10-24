@@ -3,7 +3,7 @@ id: cap15
 numero: 15
 parte: 5
 titulo: "O mouse do PS/2 (INT 15H, AH=C2H)"
-aulas: aula10; aula15; aula23
+aulas: aula10; aula15; aula23; aula47
 ---
 
 # Capítulo 15 · O mouse do PS/2
@@ -26,8 +26,9 @@ Há duas camadas de software para o mouse no DOS:
 | Driver (`MOUSE.COM`) | `INT 33H`: posição na tela, ponteiro desenhado, eventos | o fabricante do mouse |
 
 O driver da `INT 33H`, quando o mouse é PS/2, usa por baixo exatamente as funções deste
-capítulo. Programas que só precisam de "onde está o ponteiro" usam a `INT 33H`; jogos e
-programas residentes que querem controle total, ou que rodam sem driver, falam com a BIOS.
+capítulo. Programas que só precisam de "onde está o ponteiro" usam a `INT 33H` (veja a
+[Aula 47](../conteudo/aula47-mouse.md)); jogos e programas residentes que querem controle total,
+ou que rodam sem driver, falam com a BIOS.
 
 A interface existe só no PS/2 (e posteriores). O bit 2 do byte de equipamento (`INT 11H`) diz se
 há dispositivo apontador, e a EBDA ([Capítulo 8](cap08-equipamento-e-memoria.md)) guarda os
@@ -260,7 +261,9 @@ têm sinal, e dividir um negativo por 4 exige o deslocamento aritmético da [Aul
 
 ## 15.5 No simulador do curso
 
-Não há mouse nem `INT 15H` no simulador. `MOUSE.ASM` monta e, no laboratório, mostra "Sem mouse
+O simulador tem o driver da `INT 33H` (funções 00H a 0CH, a rotina de eventos e o cursor na
+tela), que é o assunto da [Aula 47](../conteudo/aula47-mouse.md), mas não a BIOS do mouse do
+PS/2: não há `INT 15H, AH=C2H`. `MOUSE.ASM` monta e, no laboratório, mostra "Sem mouse
 PS/2 pela BIOS": como a interrupção não é atendida, o CF ligado pelo `STC` antes de cada chamada
 continua ligado. Sem esse `STC`, o programa acharia que o mouse existe. Num PS/2 real ou num
 emulador com mouse PS/2 (86Box, PCem), o ponteiro se move.

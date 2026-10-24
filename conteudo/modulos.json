@@ -13,5 +13,6 @@
   { "id": 11, "titulo": "Programas residentes (TSR)", "descricao": "ganchos de teclado e timer, relógio na tela" },
   { "id": 12, "titulo": "Hardware direto e matemática", "descricao": "PIT, alto-falante, BCD, ponto fixo e coprocessador 8087" },
   { "id": 13, "titulo": "Programação de jogos", "descricao": "laço do jogo, tempo, teclado direto, som e sete jogos completos" },
-  { "id": 14, "titulo": "Construindo um sistema operacional", "descricao": "setor de boot, kernel, sistema de arquivos, shell e utilitários" }
+  { "id": 14, "titulo": "Construindo um sistema operacional", "descricao": "setor de boot, kernel, sistema de arquivos, shell e utilitários" },
+  { "id": 15, "titulo": "Macros, estruturas e mouse", "descricao": "MACRO, REPT e IF no montador, registros com STRUC e o mouse pela INT 33h" }
 ]

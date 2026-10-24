@@ -541,5 +541,77 @@ t('MINIFS: vários arquivos, diretório no setor 1', () => {
   assert.strictEqual(r.machine.curLine, 32);                  // a linha do HLT no fonte inteiro (K.SYS)
 });
 
+// ---------------- macros, repetições, IF e estruturas ----------------
+t('MACRO com parâmetros e LOCAL', () => {
+  const r = run('SOMA MACRO a,b\n MOV AX,a\n ADD AX,b\nENDM\nCONTA MACRO n\n LOCAL v\n MOV CX,n\nv: INC DX\n LOOP v\nENDM\nSOMA 3,4\nMOV BX,AX\nCONTA 3\nCONTA 5');
+  assert.strictEqual(r.machine.BX, 7);
+  assert.strictEqual(r.machine.DX, 8);
+  assert.deepStrictEqual(bytesOf('M MACRO r\n INC r\nENDM\nM AX\nM CX'), ['40', '41']);
+});
+t('REPT com contador "=" usa o valor de cada momento', () => {
+  const r = run(HEADER + '.DATA\nT LABEL BYTE\ni = 1\nREPT 5\n DB i*i\n i = i+1\nENDM\n.CODE\nini: MOV AX,@DATA\nMOV DS,AX\nMOV AL,T+4\nMOV BL,T+2\nMOV AH,4Ch\nINT 21h\nEND ini');
+  assert.strictEqual(r.machine.AL, 25);
+  assert.strictEqual(r.machine.BL, 9);
+});
+t('IRP, IRPC e IF/ELSE/IFB/IFIDNI', () => {
+  assert.deepStrictEqual(bytesOf('IRP r,<AX,BX>\n PUSH r\nENDM'), ['50', '53']);
+  assert.strictEqual(run('IRPC d,123\n ADD AX,d\nENDM').machine.AX, 6);
+  assert.strictEqual(run('D EQU 1\nIF D EQ 0\nMOV AX,1\nELSE\nMOV AX,2\nENDIF').machine.AX, 2);
+  assert.strictEqual(run('M MACRO a,b\nIFB <b>\nMOV AX,a\nELSE\nMOV AX,b\nENDIF\nENDM\nM 5').machine.AX, 5);
+  assert.strictEqual(run('M MACRO r\nIFIDNI <r>,<ax>\nMOV BX,1\nENDIF\nENDM\nM AX').machine.BX, 1);
+});
+t('macro recursiva com %, EXITM e &', () => {
+  assert.strictEqual(run('FAT MACRO n\nIF n GT 1\n FAT %n-1\n MOV BX,n\n MUL BX\nELSE\n MOV AX,1\nENDIF\nENDM\nFAT 5').machine.AX, 120);
+  const r = run('M MACRO n\n MOV AX,n\n IF n GT 5\n  EXITM\n ENDIF\n MOV BX,n\nENDM\nM 9');
+  assert.strictEqual(r.machine.AX, 9); assert.strictEqual(r.machine.BX, 0);
+  const r2 = run(HEADER + '.DATA\nMSG_1 DB \'um$\'\nMSG_2 DB \'dois$\'\n.CODE\nE MACRO n\n MOV DX,OFFSET MSG_&n\n MOV AH,9\n INT 21h\nENDM\nini: MOV AX,@DATA\nMOV DS,AX\nE 2\nE 1\nMOV AH,4Ch\nINT 21h\nEND ini');
+  assert.strictEqual(r2.machine.output, 'doisum');
+});
+t('erros didáticos de macros', () => {
+  assert.match(errOf('M MACRO\n MOV AX,[DX]\nENDM\nM'), /na expansão da macro M/);
+  assert.match(errOf('M MACRO\n NOP'), /sem ENDM/);
+  assert.match(errOf('ENDIF'), /ENDIF sem IF/);
+  assert.match(errOf('IF 1\nNOP'), /IF sem ENDIF/);
+  assert.match(errOf('M MACRO\n M\nENDM\nM'), /aninhadas fundo demais/);
+});
+t('STRUC: campos, instâncias, DUP, SIZE e [BX].campo', () => {
+  const src = HEADER + 'PONTO STRUC\n X DW ?\n Y DW 7\n COR DB 4\nPONTO ENDS\n.DATA\nP1 PONTO <10,20,1>\nP2 PONTO <>\nVET PONTO 3 DUP(<1,2,3>)\n.CODE\n' +
+    'ini: MOV AX,@DATA\nMOV DS,AX\nMOV AX,P1.Y\nMOV BX,P2.Y\nLEA SI,VET\nADD SI,SIZE PONTO\nMOV CX,[SI].X\nMOV DL,[SI].COR\nMOV DH,LENGTH VET\nMOV [SI].COR,9\nMOV DI,[SI+PONTO.Y]\nMOV AH,4Ch\nINT 21h\nEND ini';
+  const r = run(src);
+  assert.strictEqual(r.machine.AL, 20);
+  assert.strictEqual(r.machine.BX, 7);
+  assert.strictEqual(r.machine.CX, 1);
+  assert.strictEqual(r.machine.DL, 3);
+  assert.strictEqual(r.machine.DH, 3);
+  assert.strictEqual(r.machine.DI, 2);
+  const v = r.prog.symbols.VET;
+  assert.strictEqual(r.machine.mem[v.seg * 16 + v.off + 5 + 4], 9);   // MOV [SI].COR,9 gravou um byte
+  assert.deepStrictEqual(bytesOf('P STRUC\nA DB ?\nB DW ?\nP ENDS\nMOV [BX].B,1'), ['c7 47 01 01 00']);
+  assert.match(errOf('P STRUC\nA DB ?\nP ENDS\nMOV AX,[BX].Z'), /não é um campo/);
+  assert.match(errOf('P STRUC\nA DB ?\nP ENDS\nX P <1,2>'), /só 1 campos/);
+});
+
+// ---------------- mouse (INT 33h) ----------------
+t('INT 33h: reset, mostrar e ler posição', () => {
+  const r = run('XOR AX,AX\nINT 33h\nMOV SI,AX\nMOV DI,BX\nMOV AX,1\nINT 33h\nMOV AX,4\nMOV CX,100\nMOV DX,50\nINT 33h\nMOV AX,3\nINT 33h');
+  assert.strictEqual(r.machine.SI, 0xFFFF);
+  assert.strictEqual(r.machine.DI, 2);
+  assert.strictEqual(r.machine.CX, 96);   // no modo texto o cursor anda de 8 em 8
+  assert.strictEqual(r.machine.DX, 48);
+  assert.ok(r.machine.cursorMouse());
+});
+t('INT 33h: cliques pela fila de teste e rotina do usuário (AX=0Ch)', () => {
+  const src = HEADER + '.DATA\nN DW 0\nUX DW 0\n.CODE\nROT PROC FAR\n PUSH DS\n MOV AX,@DATA\n MOV DS,AX\n INC N\n MOV UX,CX\n POP DS\n RETF\nROT ENDP\n' +
+    'ini: MOV AX,@DATA\nMOV DS,AX\nXOR AX,AX\nINT 33h\nMOV AX,0Ch\nMOV CX,2\nPUSH CS\nPOP ES\nMOV DX,OFFSET ROT\nINT 33h\nMOV BX,1234h\nvolta: CMP N,2\nJB volta\nMOV AX,UX\nMOV AH,4Ch\nINT 21h\nEND ini';
+  const r = M.runProgram(src, { mouse: [[100, 50, 1], [100, 50, 0], [200, 60, 1]] });
+  assert.strictEqual(r.status, 'terminado');
+  assert.strictEqual(r.machine.AL, 200);
+  assert.strictEqual(r.machine.BX, 0x1234);   // o driver restaura os registradores
+  const r2 = M.runProgram('XOR AX,AX\nINT 33h\nv: MOV AX,5\nXOR BX,BX\nINT 33h\nOR BX,BX\nJZ v', { mouse: [[40, 16, 1]] });
+  assert.strictEqual(r2.status, 'terminado');
+  assert.strictEqual(r2.machine.CX, 40);
+  assert.strictEqual(r2.machine.DX, 16);
+});
+
 console.log(`\n${ok} passaram, ${fail} falharam`);
 process.exit(fail ? 1 : 0);

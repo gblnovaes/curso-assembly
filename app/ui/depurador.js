@@ -190,6 +190,12 @@
       if (this.m.status === 'aguardando' && !this.rodando) { this.marcar(); const st = this.m.step(); this.emitir(st === 'aguardando' ? 'aguardando' : 'passo'); }
     }
     soltar(scan) { this.m.soltarTecla(scan); }
+    // mouse da tela do programa (INT 33h)
+    mouse(x, y, btn) {
+      if (!this.m.mouse.usado) return;
+      this.m.mouseEvento(x, y, btn);
+      if (this.m.status === 'aguardando' && !this.rodando && this.m.mouse.eventos.length) { this.marcar(); const st = this.m.step(); this.emitir(st === 'aguardando' ? 'aguardando' : 'passo'); }
+    }
     tecla(ascii, scan) {
       this.m.pushKey(ascii, scan);
       if (this.m.status === 'aguardando' && !this.rodando) {
@@ -426,6 +432,7 @@
       this.motor.velocidade = 'media';
       this.cv = h('canvas.tela.mini-gfx', { tabindex: '0', title: 'Tela do programa. Clique aqui para digitar no teclado do programa.', style: { display: 'none' } });
       this.telaG = new window.Tela(this.cv);
+      this.telaG.ligarMouse((x, y, b) => this.motor.mouse(x, y, b));
       this.cv.addEventListener('keydown', (e) => { const k = teclaDoEvento(e); if (k) { e.preventDefault(); this.motor.tecla(k[0], k[1]); } });
       this.fpuEl = h('div.lista-mono', { style: { display: 'none', margin: '.3em 0' } });
       this.codigo = codigo;
@@ -479,7 +486,7 @@
       this.flags.innerHTML = htmlFlags(m, this.motor.flagsAntes);
       this.vars.innerHTML = htmlVariaveis(m);
       this.saida.textContent = m.outputText() || '';
-      if (m.videoMode === 0x13 || m.escreveuVideo || this.cv.style.display !== 'none') {
+      if (m.videoMode === 0x13 || m.escreveuVideo || m.mouse.usado || this.cv.style.display !== 'none') {
         this.cv.style.display = '';
         // depois que um programa gráfico volta ao modo texto e termina, mostra o último quadro do modo 13h
         if (m.halted && m.usou13h && m.videoMode !== 0x13 && !m.escreveuVideo) this.telaG.desenharVGA(m.mem, m.dac);
@@ -514,6 +521,7 @@
       this.cv = h('canvas.tela', { tabindex: '0', title: 'Clique aqui e use o teclado' });
       this.cv.style.cssText = 'width:min(96vw,133vh,1280px);height:auto;aspect-ratio:4/3;background:#000';
       this.tela = new window.Tela(this.cv);
+      this.tela.ligarMouse((x, y, b) => this.motor.mouse(x, y, b));
       this.msg = h('span', { style: { flex: 1, color: '#AAA' } }, '');
       const sel = h('select', { title: 'Velocidade do PC' }, h('option', { value: 'real' }, 'IBM PC XT (4,77 MHz)'), h('option', { value: 'turbo' }, 'PC 386 (25 MHz)'));
       sel.value = this.motor.velocidade;
@@ -615,6 +623,7 @@
       this.pilhaEl = h('div');
       this.canvas = h('canvas.tela', { tabindex: '0', title: 'Tela do programa (80x25). Clique aqui para digitar no teclado do programa.' });
       this.tela = new window.Tela(this.canvas);
+      this.tela.ligarMouse((x, y, b) => this.motor.mouse(x, y, b));
       this.canvas.addEventListener('keydown', (e) => {
         if (/^F\d+$/.test(e.key) && !e.shiftKey) return;
         const k = teclaDoEvento(e);
@@ -696,6 +705,7 @@
     telaCheia() {
       const cv = h('canvas.tela', { tabindex: '0', style: { width: 'min(96vw, 160vh)', height: 'auto' } });
       const t = new window.Tela(cv);
+      t.ligarMouse((x, y, b) => this.motor.mouse(x, y, b));
       const fundo = h('div.dlg-fundo', { style: { background: '#000' } }, cv);
       const fechar = () => { cancelAnimationFrame(raf); fundo.remove(); };
       let raf;

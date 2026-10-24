@@ -180,6 +180,7 @@ Cada teste é um objeto JSON:
 - `entrada`: teclas digitadas, como texto (`\r` é Enter, `\u001b` é Esc). Teclas especiais: `{ESC}`, `{ENTER}`, `{TAB}`, `{CIMA}`, `{BAIXO}`, `{ESQUERDA}`, `{DIREITA}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{INS}`, `{DEL}`, `{F1}` a `{F10}`. Se o programa instalar uma rotina na INT 9, as teclas ainda não lidas passam a chegar pela IRQ 1 (aperto e soltura).
 - `arquivos`: arquivos no disco C: antes de rodar, como `{ "DADOS.TXT": "texto" }` ou com uma lista de bytes.
 - `linhaComando`: a linha de comando do programa (`" ARQ.TXT"`).
+- `mouse`: eventos do mouse, como `[[x, y, botões], ...]`, em coordenadas virtuais (0 a 639, 0 a 199) e botões com bit 0 = esquerdo, bit 1 = direito. Os eventos começam depois que o programa chama a INT 33h pela primeira vez e chegam um a cada 2.000 instruções (no modo texto, x e y andam de 8 em 8).
 - `residente`: para TSRs, `{ "passos": 30000, "entrada": "teclas" }` continua rodando o "prompt do DOS" por esse número de instruções depois do `AH=31h` (com o timer ligado) e digita as teclas. Use `"status": "residente"` na `espera`.
 - `espera`: o que conferir no fim:
 
@@ -206,6 +207,7 @@ Cada teste é um objeto JSON:
 | `preservar` | lista de registradores que precisam voltar aos valores do `setup` |
 | `maxCiclos` | limite de ciclos só neste teste |
 | `codigoSaida` | o valor de AL na saída com `AH=4Ch` |
+| `mouseSemRotina` | `true`: a rotina de eventos do mouse (INT 33h, AX=0Ch) precisa ter sido desinstalada |
 | `status` | estado final esperado (padrão `terminado`; `residente` para TSRs) |
 
 ## Regras de conteúdo
@@ -213,7 +215,7 @@ Cada teste é um objeto JSON:
 - Só instruções e modos de endereçamento do 8086 real, na sintaxe MASM/TASM. O montador recusa as formas do 80186 em diante com uma mensagem explicando.
 - Texto em português do Brasil. Nomes de rótulos e variáveis em português, sem acentos.
 - Programas `.EXE` (modelo SMALL) sempre começam com `MOV AX,@DATA` / `MOV DS,AX`.
-- O montador não tem `MACRO`. Rótulos `@@` valem só dentro do `PROC`. Símbolos não diferenciam maiúsculas: uma variável não pode ter o nome de uma constante `EQU`.
+- O montador entende `MACRO`/`ENDM` (com `LOCAL`, `&`, `%` e `EXITM`), `REPT`, `IRP`, `IRPC`, montagem condicional (`IF`, `IFE`, `IFDEF`, `IFNDEF`, `IFB`, `IFNB`, `IFIDN`, `IFDIF`, `ELSE`, `ENDIF`) e `STRUC`/`ENDS` (aulas 45 e 46). Não há `INCLUDE`: cole as macros no começo do programa. Rótulos `@@` valem só dentro do `PROC`. Símbolos não diferenciam maiúsculas: uma variável não pode ter o nome de uma constante `EQU`.
 - Num programa do DOS, `HLT` termina o programa no simulador; para esperar o tempo passar, use os tiques (0040:006Ch) ou o retraço (porta 3DAh).
 - Cada aula aponta os capítulos do livro da BIOS e do DOS com `[texto](livro:cap20)`.
 - Explique o porquê, não só o como, e prefira exemplos que o aluno possa executar.

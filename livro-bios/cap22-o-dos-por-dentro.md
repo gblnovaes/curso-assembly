@@ -3,7 +3,7 @@ id: cap22
 numero: 22
 parte: 7
 titulo: "O DOS por dentro (e o MINIOS)"
-aulas: aula25; aula26; aula41; aula42; aula43; aula44
+aulas: aula25; aula26; aula41; aula42; aula43; aula44; aula46
 ---
 
 # Capítulo 22 · O DOS por dentro (e o MINIOS)

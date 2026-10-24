@@ -59,6 +59,9 @@ no livro para aprofundar, e, capítulo por capítulo, quais aulas preparam a lei
 | [42](../conteudo/aula42-arquivos-e-exec.md) | Arquivos e o EXEC | [Cap. 9](cap09-disquete.md), [Cap. 22](cap22-o-dos-por-dentro.md) (FAT12, PSP, EXEC) |
 | [43](../conteudo/aula43-shell.md) | O shell | [Cap. 22](cap22-o-dos-por-dentro.md) (COMMAND.COM), [Cap. 7](cap07-tempo-e-relogios.md) (hora do RTC) |
 | [44](../conteudo/aula44-utilitarios.md) | Utilitários e o disquete completo | [Cap. 8](cap08-equipamento-e-memoria.md), [Cap. 12](cap12-boot-e-roms.md), [Cap. 21](cap21-sem-dos-boot-e-kernel.md), [Cap. 22](cap22-o-dos-por-dentro.md) |
+| [45](../conteudo/aula45-macros.md) | Macros e montagem condicional | [Cap. 19](cap19-diretrizes-e-compatibilidade.md) (diretrizes que as bibliotecas de macros padronizavam) |
+| [46](../conteudo/aula46-estruturas.md) | Estruturas: STRUC e campos | [Cap. 17](cap17-area-de-dados-da-bios.md) (a área de dados como estrutura), [Cap. 22](cap22-o-dos-por-dentro.md) (PSP, MCB, diretório) |
+| [47](../conteudo/aula47-mouse.md) | O mouse: a INT 33h | [Cap. 15](cap15-mouse-ps2.md) (a BIOS do mouse por baixo do driver), [Cap. 20](cap20-bios-para-jogos.md) |
 
 ## B.2 Capítulo por capítulo
 
@@ -78,14 +81,14 @@ no livro para aprofundar, e, capítulo por capítulo, quais aulas preparam a lei
 | [12 · Boot e ROMs](cap12-boot-e-roms.md) | Aulas 0, 12, 26 |
 | [13 · INT 15H](cap13-int15-servicos.md) | Aulas 14, 19, 27 |
 | [14 · Memória estendida](cap14-memoria-estendida-modo-protegido.md) | Aulas 3, 12, 26 |
-| [15 · Mouse](cap15-mouse-ps2.md) | Aulas 10, 15, 22, 23 |
+| [15 · Mouse](cap15-mouse-ps2.md) | Aulas 10, 15, 22, 23, 47 |
 | [16 · Multitarefa](cap16-multitarefa.md) | Aulas 15, 27 |
-| [17 · Área de dados](cap17-area-de-dados-da-bios.md) | Aulas 12, 14, 28 |
+| [17 · Área de dados](cap17-area-de-dados-da-bios.md) | Aulas 12, 14, 28, 46 |
 | [18 · Compartilhar IRQs](cap18-compartilhamento-de-irq.md) | Aulas 15, 27 |
-| [19 · Diretrizes](cap19-diretrizes-e-compatibilidade.md) | Aulas 16, 17, 20, 29 |
+| [19 · Diretrizes](cap19-diretrizes-e-compatibilidade.md) | Aulas 16, 17, 20, 29, 45 |
 | [20 · A BIOS para jogos](cap20-bios-para-jogos.md) | Aulas 15, 24, 28, 29, 32 |
 | [21 · Sem DOS](cap21-sem-dos-boot-e-kernel.md) | Aulas 12, 14, 40, 41 |
-| [22 · O DOS por dentro](cap22-o-dos-por-dentro.md) | Aulas 25, 26, 42, 43 |
+| [22 · O DOS por dentro](cap22-o-dos-por-dentro.md) | Aulas 25, 26, 42, 43, 46 |
 
 ## B.3 Três roteiros de leitura
 

@@ -20,6 +20,8 @@
   const VIDEO = 0xB8000;
   const VGA = 0xA0000;
   const IDLE_OFF = 0xE800;    // F000:E800 = "prompt do DOS" depois de um TSR
+  const MOUSE_RET = 0xE900;   // F000:E900 = volta da rotina do usuário para o driver do mouse
+  const MOUSE_SEG = 0xC800;   // segmento de dados do "driver do mouse" (DS dentro da rotina do usuário)
   const DOS_SEG = 0x0060;     // dados e pilha do "DOS" (InDOS, pilha do prompt)
   const ENV_SEG = 0x0680;     // bloco de ambiente do programa
   const MCB_INICIO = 0x067F;  // primeiro MCB da cadeia
@@ -177,6 +179,7 @@
       this.timerInterval = this.opts.timerInterval;
       this.soundLog = [];
       this.kbdQueue = []; this.kbdLatch = null; this.lastKbdIrq = -1000;
+      this.mouseReset();
       this.videoMode = 3;
       this.dac = new Uint8Array(PALETA_PADRAO);
       this.dacW = 0; this.dacR = 0; this.dacC = 0; this.dacRC = 0;
@@ -217,6 +220,7 @@
       for (let i = 0; i < 2048; i++) this.mem[(i < 1024 ? 0xFFA6E : 0xFF66E - 1024) + i] = FONTE[i];
       this.setVec(0x1F, BIOS_SEG, 0xF66E); this.setVec(0x43, BIOS_SEG, 0xFA6E);
       // "prompt do DOS" (usado depois de um TSR)
+      this.instrMap.set(BIOS_SEG * 16 + MOUSE_RET, { line: 0, mn: 'RETF', ops: [], size: 1, bytes: [0xCB], seg: BIOS_SEG, off: MOUSE_RET, phys: BIOS_SEG * 16 + MOUSE_RET, cycles: { base: 20 }, text: '(driver do mouse: restaura os registradores)', synthetic: true });
       this.instrMap.set(BIOS_SEG * 16 + IDLE_OFF, { line: 0, mn: 'DOSIDLE', ops: [], size: 0, bytes: [0xEB, 0xFE], seg: BIOS_SEG, off: IDLE_OFF, phys: BIOS_SEG * 16 + IDLE_OFF, cycles: { base: 10 }, text: 'C:\\> (DOS esperando comandos)', synthetic: true });
       this.clearScreen(0x07);
       this.setCursor(0, 0);
@@ -519,6 +523,120 @@
       return true;
     }
 
+    // ---------------- mouse (driver compatível com o da Microsoft, INT 33h) ----------------
+    // Coordenadas virtuais: 640x200 em todos os modos (no 13h, X vai de 0 a 639: divida por 2).
+    mouseReset() {
+      const old = this.mouse;
+      this.mouse = {
+        x: 320, y: 100, btn: 0, contador: -1,   // contador >= 0: cursor visível
+        xmin: 0, xmax: 639, ymin: 0, ymax: 199,
+        apertos: [{ n: 0, x: 0, y: 0 }, { n: 0, x: 0, y: 0 }, { n: 0, x: 0, y: 0 }],
+        solturas: [{ n: 0, x: 0, y: 0 }, { n: 0, x: 0, y: 0 }, { n: 0, x: 0, y: 0 }],
+        mickX: 0, mickY: 0, rotina: null, eventos: [], naRotina: null, usado: old ? old.usado : false
+      };
+    }
+    // chamado pela interface: posição em coordenadas virtuais e botões (bit 0 esquerdo, bit 1 direito, bit 2 meio)
+    mouseEvento(x, y, btn) {
+      const ms = this.mouse;
+      x = Math.max(ms.xmin, Math.min(ms.xmax, Math.round(x)));
+      y = Math.max(ms.ymin, Math.min(ms.ymax, Math.round(y)));
+      if (this.mem[0x449] !== 0x13) { x &= ~7; y &= ~7; }   // modo texto: o cursor anda de célula em célula
+      let cond = 0;
+      if (x !== ms.x || y !== ms.y) { cond |= 1; ms.mickX = (ms.mickX + (x - ms.x) * 8) & 0xFFFF; ms.mickY = (ms.mickY + (y - ms.y) * 8) & 0xFFFF; }
+      ms.x = x; ms.y = y;
+      for (let b = 0; b < 3; b++) {
+        const antes = (ms.btn >> b) & 1, agora = (btn >> b) & 1;
+        if (antes === agora) continue;
+        const reg = agora ? ms.apertos[b] : ms.solturas[b];
+        reg.n = Math.min(reg.n + 1, 0xFFFF); reg.x = x; reg.y = y;
+        // bits da máscara: 1 move, 2/4 esquerdo aperta/solta, 8/16 direito, 32/64 meio
+        cond |= agora ? (2 << (b * 2)) : (4 << (b * 2));
+      }
+      ms.btn = btn & 7;
+      if (ms.rotina && (cond & ms.rotina.mask)) {
+        const ult = ms.eventos[ms.eventos.length - 1];
+        if (ult && cond === 1 && ult.cond === 1) ult.x = x, ult.y = y;   // movimentos seguidos viram um só
+        else if (ms.eventos.length < 32) ms.eventos.push({ cond: cond & ms.rotina.mask, x, y });
+        this.hltEspera = false;
+      }
+      this.screenDirty = true;
+    }
+    // cursor que a interface desenha por cima da tela
+    cursorMouse() {
+      const ms = this.mouse;
+      return ms.contador >= 0 ? { x: ms.x, y: ms.y } : null;
+    }
+    // chama a rotina instalada com AX=0Ch, como a IRQ do mouse faria
+    pollMouse() {
+      const ms = this.mouse;
+      if (!ms.eventos.length || !ms.rotina || ms.naRotina || !this.flag(IF)) return false;
+      if (this.waiting && this.nativeCtx) return false;
+      const ev = ms.eventos.shift();
+      ms.naRotina = { r: Array.from(this.r), s: Array.from(this.s), flags: this.flags, ip: this.ip, waiting: this.waiting };
+      this.waiting = null;
+      this.AX = ev.cond; this.BX = ms.btn; this.CX = ev.x; this.DX = ev.y;
+      this.SI = ms.mickX; this.DI = ms.mickY;
+      this.DS = MOUSE_SEG;
+      this.setFlag(IF, false);
+      this.push(BIOS_SEG); this.push(MOUSE_RET);
+      this.CS = ms.rotina.seg; this.ip = ms.rotina.off;
+      this.callDepth++;
+      this.cycles += 300;   // o driver lê o mouse e salva os registradores antes de chamar a rotina
+      return true;
+    }
+    int33() {
+      const ms = this.mouse;
+      ms.usado = true;
+      const modo13 = this.mem[0x449] === 0x13;
+      switch (this.AX) {
+        case 0x00: case 0x21: {   // reset do driver
+          this.mouseReset();
+          this.mouse.usado = true;
+          if (!modo13) { this.mouse.x = 320; this.mouse.y = 96; }
+          this.AX = 0xFFFF; this.BX = 2;
+          return 'ok';
+        }
+        case 0x01: if (ms.contador < 0) ms.contador++; this.screenDirty = true; return 'ok';
+        case 0x02: case 0x10: ms.contador--; this.screenDirty = true; return 'ok';
+        case 0x03: this.BX = ms.btn; this.CX = ms.x; this.DX = ms.y; return 'ok';
+        case 0x04:
+          ms.x = Math.max(ms.xmin, Math.min(ms.xmax, this.CX));
+          ms.y = Math.max(ms.ymin, Math.min(ms.ymax, this.DX));
+          if (!modo13) { ms.x &= ~7; ms.y &= ~7; }
+          this.screenDirty = true;
+          return 'ok';
+        case 0x05: case 0x06: {
+          const b = this.BX & 3;
+          const reg = (this.AX === 5 ? ms.apertos : ms.solturas)[b > 2 ? 0 : b];
+          this.AX = ms.btn; this.BX = reg.n; this.CX = reg.x; this.DX = reg.y;
+          reg.n = 0;
+          return 'ok';
+        }
+        case 0x07: case 0x08: {
+          const a = Math.min(this.CX, this.DX), b = Math.max(this.CX, this.DX);
+          if (this.AX === 7) { ms.xmin = a; ms.xmax = b; ms.x = Math.max(a, Math.min(b, ms.x)); }
+          else { ms.ymin = a; ms.ymax = b; ms.y = Math.max(a, Math.min(b, ms.y)); }
+          return 'ok';
+        }
+        case 0x0B: this.CX = ms.mickX; this.DX = ms.mickY; ms.mickX = 0; ms.mickY = 0; return 'ok';
+        case 0x0C:
+          ms.rotina = this.CX & 0x7F ? { seg: this.ES, off: this.DX, mask: this.CX & 0x7F } : null;
+          ms.eventos = [];
+          return 'ok';
+        case 0x14: {   // troca a rotina e devolve a antiga
+          const velha = ms.rotina;
+          ms.rotina = this.CX & 0x7F ? { seg: this.ES, off: this.DX, mask: this.CX & 0x7F } : null;
+          this.CX = velha ? velha.mask : 0; this.ES = velha ? velha.seg : 0; this.DX = velha ? velha.off : 0;
+          return 'ok';
+        }
+        case 0x0A: case 0x0F: case 0x13: case 0x1A: case 0x1D: return 'ok';
+        case 0x24: this.BX = 0x0626; this.CX = 0x0400; return 'ok';   // versão 6.26, mouse PS/2
+        default:
+          this.note('aviso', 'INT 33h com AX=' + hex(this.AX, 4) + 'h não é simulada (o simulador tem as funções 00h-08h, 0Bh, 0Ch, 10h, 14h, 21h e 24h).', 'int33-' + this.AX);
+          return 'ok';
+      }
+    }
+
     // ---------------- endereçamento ----------------
     ea(op) {
       let off = op.disp ? op.disp.v : 0;
@@ -675,6 +793,7 @@
         case 0x13: return this.int13();
         case 0x15: return this.int15();
         case 0x16: return this.int16();
+        case 0x33: return this.int33();
         case 0x18:
           this.printStr('\r\nNenhum sistema para iniciar (INT 18h). No IBM PC original, aqui entrava o BASIC da ROM.\r\n');
           this.halt('INT 18h: a BIOS não achou um sistema para dar boot.', 'erro');
@@ -1138,6 +1257,17 @@
         for (const k of rest) this.kbdQueue.push({ ascii: k.ascii, scan: k.scan }, { ascii: 0, scan: k.scan | 0x80, solta: true });
       }
       if (this.kbdQueue.length && this.pollKbd()) { this.hltEspera = false; return this.status = 'executando'; }
+      if (this.CS === BIOS_SEG && this.ip === MOUSE_RET && this.mouse.naRotina) {
+        // fim da rotina do usuário (RETF): o driver restaura tudo e a interrupção termina
+        const sv = this.mouse.naRotina;
+        this.mouse.naRotina = null;
+        this.r.set(sv.r); this.s.set(sv.s); this.flags = sv.flags; this.ip = sv.ip;
+        if (sv.waiting) this.waiting = sv.waiting;
+        if (this.callDepth > 0) this.callDepth--;
+        this.steps++; this.cycles += 60;
+        return this.status = 'executando';
+      }
+      if (this.mouse.eventos.length && this.pollMouse()) { this.hltEspera = false; return this.status = 'executando'; }
       // HLT: a CPU está parada esperando uma interrupção; o tempo corre até o próximo tique
       if (this.hltEspera) {
         if (this.timerCiclos) this.cycles = Math.max(this.cycles, Math.ceil(this.proxTick || 0));
@@ -2306,7 +2436,24 @@
     const res = opts.residente || {};
     let st;
     let tsrVisto = false;
+    // mouse simulado: [[x, y, botões], ...], um evento a cada 2000 passos depois que o programa usou a INT 33h
+    const mouseFila = (opts.mouse || []).slice();
+    let mouseUlt = 0;
+    const mouseVez = () => {
+      if (!mouseFila.length || !m.mouse.usado || m.steps - mouseUlt < 2000) return false;
+      const [x, y, b] = mouseFila.shift();
+      m.mouseEvento(x, y, b || 0); mouseUlt = m.steps;
+      return true;
+    };
     while (m.steps < max) {
+      if (mouseFila.length) {
+        mouseVez();
+        st = m.run(500);
+        if (st === 'aguardando' && mouseFila.length) { m.steps += 2000; m.status = 'executando'; if (mouseVez()) continue; }
+        if (st === 'executando' || st === 'pausa') continue;
+        if (st === 'aguardando' && m.kbdQueue.length) continue;
+        break;
+      }
       if (m.residente && !tsrVisto) { tsrVisto = true; if (res.entrada) m.typeString(res.entrada); }
       if (m.residente && m.steps - m.residente.passo >= (res.passos || 0)) { st = 'residente'; break; }
       const lote = m.residente ? Math.min(10000, (res.passos || 0) - (m.steps - m.residente.passo)) : 10000;
@@ -2319,5 +2466,5 @@
     return { prog, machine: m, status: st };
   }
 
-  return { Machine, runProgram, FLAG_BITS, hex, BIOS_SEG, STUB_BASE, VIDEO, VGA, scanDe, PALETA_PADRAO, ehDisquete, montarDisquete, DISQUETE, montarPrograma, partesDoFonte, MINIFS };
+  return { Machine, runProgram, FLAG_BITS, hex, BIOS_SEG, STUB_BASE, MOUSE_RET, VIDEO, VGA, scanDe, PALETA_PADRAO, ehDisquete, montarDisquete, DISQUETE, montarPrograma, partesDoFonte, MINIFS };
 });

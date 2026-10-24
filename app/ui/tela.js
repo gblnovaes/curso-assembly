@@ -26,7 +26,9 @@
     }
     desenhar(mem, cursor, mostrarCursor, m) {
       const ctx = this.ctx;
-      if (mem[0x449] === 0x13) { this.cache = null; return this.desenharVGA(mem, m ? m.dac : window.Machine8086.PALETA_PADRAO); }
+      const cm = m && m.cursorMouse ? m.cursorMouse() : null;
+      this.cv.style.cursor = cm ? 'none' : '';
+      if (mem[0x449] === 0x13) { this.cache = null; this.desenharVGA(mem, m ? m.dac : window.Machine8086.PALETA_PADRAO); if (cm) this.setaMouse(cm); return; }
       const fam = getComputedStyle(document.documentElement).getPropertyValue('--font') || 'monospace';
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
@@ -65,6 +67,45 @@
         ctx.fillRect(cursor.col * CW, cursor.row * CH + 13, CW, 2);
         this.ultCursor = cursor.row * 80 + cursor.col;   // no próximo quadro essa célula é refeita (apaga o cursor)
       }
+      // cursor do mouse no modo texto: a célula com as cores invertidas (como o driver faz com o atributo)
+      if (cm) {
+        const c = Math.min(79, cm.x >> 3), r = Math.min(24, cm.y >> 3);
+        ctx.save(); ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(c * CW, r * CH, CW, CH); ctx.restore();
+        cache[r * 80 + c] = -1;   // refeita no próximo quadro
+      }
+    }
+    // seta do mouse no modo gráfico (X virtual de 0 a 639: cada pixel do 13h vale 2)
+    setaMouse(cm) {
+      const ctx = this.ctx, sx = this.cv.width / 320, sy = this.cv.height / 200;
+      const px = (cm.x >> 1) * sx, py = cm.y * sy;
+      const SETA = [[0, 0], [0, 10], [3, 7], [5, 11], [7, 10], [5, 6], [9, 6]];
+      ctx.save();
+      ctx.beginPath();
+      SETA.forEach(([x, y], i) => { const X = px + x * sx, Y = py + y * sy; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); });
+      ctx.closePath();
+      ctx.fillStyle = '#FFFFFF'; ctx.fill();
+      ctx.lineWidth = Math.max(1, sx * 0.6); ctx.strokeStyle = '#000000'; ctx.stroke();
+      ctx.restore();
+    }
+    // liga o mouse do PC ao canvas: posição em 640x200 e botões (1 esquerdo, 2 direito, 4 meio)
+    ligarMouse(aoMover) {
+      const cv = this.cv;
+      const ev = (e) => {
+        const r = cv.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        // a imagem pode estar centralizada dentro do elemento (object-fit: contain)
+        const esc = getComputedStyle(cv).objectFit === 'contain' ? Math.min(r.width / cv.width, r.height / cv.height) : 0;
+        const w = esc ? cv.width * esc : r.width, hh = esc ? cv.height * esc : r.height;
+        const left = r.left + (r.width - w) / 2, top = r.top + (r.height - hh) / 2;
+        const x = Math.max(0, Math.min(639, (e.clientX - left) / w * 640));
+        const y = Math.max(0, Math.min(199, (e.clientY - top) / hh * 200));
+        aoMover(x, y, e.buttons & 7);
+      };
+      cv.addEventListener('mousemove', ev);
+      cv.addEventListener('mousedown', ev);
+      cv.addEventListener('mouseup', ev);
+      cv.addEventListener('contextmenu', (e) => e.preventDefault());
     }
     invalidar() { this.cache = null; }
     // modo 13h: 320x200, um byte por pixel em A000h, cores da paleta (DAC de 6 bits por componente)

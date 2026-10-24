@@ -89,7 +89,9 @@
   const Asm = window.Asm8086;
   const REGS = new Set([...Asm.REG16, ...Asm.REG8, ...Asm.SREG]);
   const DIRS = new Set(['DB', 'DW', 'DD', 'EQU', 'PROC', 'ENDP', 'SEGMENT', 'ENDS', 'END', 'ASSUME', 'ORG', 'PTR', 'BYTE', 'WORD', 'DWORD',
-    'OFFSET', 'SEG', 'DUP', 'NEAR', 'FAR', 'SHORT', 'LABEL', 'EVEN', 'ALIGN', 'LENGTH', 'SIZE', 'TYPE', 'MOD', '@DATA', '@CODE', 'STACK', 'PUBLIC', 'PARA', 'TITLE', 'LOCALS']);
+    'OFFSET', 'SEG', 'DUP', 'NEAR', 'FAR', 'SHORT', 'LABEL', 'EVEN', 'ALIGN', 'LENGTH', 'SIZE', 'TYPE', 'MOD', '@DATA', '@CODE', 'STACK', 'PUBLIC', 'PARA', 'TITLE', 'LOCALS',
+    'DQ', 'DT', 'MACRO', 'ENDM', 'LOCAL', 'EXITM', 'PURGE', 'REPT', 'IRP', 'IRPC', 'IF', 'IFE', 'IFDEF', 'IFNDEF', 'IFB', 'IFNB',
+    'IFIDN', 'IFIDNI', 'IFDIF', 'IFDIFI', 'IF1', 'IF2', 'ELSE', 'ELSEIF', 'ENDIF', 'STRUC', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE', 'LENGTHOF', 'SIZEOF']);
   function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function realceLinha(line) {
     let out = '';
@@ -114,7 +116,7 @@
         let cls = '';
         if (line[j] === ':' && !REGS.has(u)) cls = 'k-lbl';
         else if (REGS.has(u)) cls = 'k-reg';
-        else if (u.startsWith('.') || DIRS.has(u)) cls = 'k-dir';
+        else if (/^\.(MODEL|STACK|DATA\??|CODE|STARTUP|EXIT|8086|8087|[1-5]86|LALL|SALL|XALL|LIST|XLIST)$/.test(u) || DIRS.has(u)) cls = 'k-dir';
         else if (Asm.KNOWN_MNEMONICS.has(u) || ['REP', 'REPE', 'REPNE', 'REPZ', 'REPNZ', 'LOCK'].includes(u)) cls = 'k-ins';
         out += cls ? '<span class="' + cls + '">' + escHtml(w) + '</span>' : escHtml(w);
         i = j; continue;

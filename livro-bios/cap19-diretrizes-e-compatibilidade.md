@@ -3,7 +3,7 @@ id: cap19
 numero: 19
 parte: 6
 titulo: "Diretrizes para aplicações compatíveis"
-aulas: aula16; aula17; aula20; aula29
+aulas: aula16; aula17; aula20; aula29; aula45
 ---
 
 # Capítulo 19 · Diretrizes para aplicações compatíveis

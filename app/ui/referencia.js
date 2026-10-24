@@ -204,7 +204,42 @@
     ['INT 1Ch', '—', 'Gancho do usuário no timer', 'Chamada pela INT 08h; termine com IRET'],
     ['INT 28h', '—', 'O DOS está ocioso esperando comando', 'TSRs podem trabalhar aqui'],
     ['INT 2Fh', 'xxh', 'Multiplex: "você está instalado?"', 'AH = número do programa, AL = 0 → AL = FFh se instalado'],
-    ['INT 20h', '—', 'Terminar programa .COM', 'CS = PSP']
+    ['INT 20h', '—', 'Terminar programa .COM', 'CS = PSP'],
+    ['INT 33h', 'AX=00h', 'Mouse: reset do driver (esconde o cursor)', '→ AX = FFFFh se há mouse, BX = botões'],
+    ['INT 33h', 'AX=01h / 02h', 'Mostrar / esconder o cursor do mouse', 'são contados: cada 02h precisa de um 01h'],
+    ['INT 33h', 'AX=03h', 'Posição e botões', '→ BX = botões (bit 0 esquerdo, bit 1 direito), CX = x, DX = y (0-639, 0-199)'],
+    ['INT 33h', 'AX=04h', 'Mover o cursor', 'CX = x, DX = y'],
+    ['INT 33h', 'AX=05h / 06h', 'Contagem de apertos / solturas', 'BX = botão → BX = quantas vezes desde a última chamada, CX,DX = onde'],
+    ['INT 33h', 'AX=07h / 08h', 'Limites horizontal / vertical', 'CX = mínimo, DX = máximo'],
+    ['INT 33h', 'AX=0Bh', 'Movimento em mickeys desde a última chamada', '→ CX = horizontal, DX = vertical (com sinal)'],
+    ['INT 33h', 'AX=0Ch', 'Instalar rotina de eventos', 'CX = máscara, ES:DX = rotina FAR (recebe AX = evento, BX, CX, DX; termina com RETF)']
+  ];
+  // Diretivas do montador (MASM/TASM) aceitas pelo curso
+  const DIRETIVAS = [
+    ['.MODEL SMALL / TINY', 'Modelo de memória: SMALL = .EXE com código e dados separados; TINY = .COM', 'aula00'],
+    ['.STACK n / .DATA / .CODE', 'Abre os segmentos simplificados', 'aula00'],
+    ['nome SEGMENT ... nome ENDS / ASSUME', 'Segmentos completos', 'aula12'],
+    ['nome PROC NEAR|FAR ... nome ENDP', 'Procedimento', 'aula09'],
+    ['DB DW DD DQ DT', 'Define dados: bytes, words, dwords, reais do 8087 e BCD', 'aula02'],
+    ['n DUP(valor)', 'Repete valores: 10 DUP(0), 3 DUP(1,2)', 'aula07'],
+    ['nome EQU valor / nome = valor', 'Constantes. Com =, pode ser redefinida (vale do ponto da definição em diante)', 'aula07'],
+    ['ORG / EVEN / ALIGN n', 'Muda o endereço de montagem / alinha', 'aula26'],
+    ['nome LABEL BYTE|WORD|NEAR|FAR', 'Dá um nome e um tipo ao endereço atual', 'aula45'],
+    ['OFFSET SEG TYPE SIZE LENGTH HIGH LOW', 'Operadores de expressão', 'aula02'],
+    ['EQ NE LT LE GT GE / AND OR XOR NOT SHL SHR MOD', 'Operadores de comparação (verdadeiro = 0FFFFh) e de bits', 'aula45'],
+    ['nome MACRO p1,p2 ... ENDM', 'Macro: o corpo é copiado no lugar de cada chamada, com os parâmetros trocados', 'aula45'],
+    ['LOCAL r1,r2', 'Dentro da macro: rótulos únicos em cada expansão (??0000, ??0001...)', 'aula45'],
+    ['&  %expr  <a,b>', 'Junta texto ao parâmetro / passa o valor da expressão / agrupa um argumento com vírgulas', 'aula45'],
+    ['EXITM / PURGE nome', 'Sai da expansão atual / esquece uma macro', 'aula45'],
+    ['REPT n ... ENDM', 'Repete o bloco n vezes', 'aula45'],
+    ['IRP p,<a,b,c> ... ENDM / IRPC p,abc', 'Repete o bloco para cada item da lista / cada caractere', 'aula45'],
+    ['IF expr / IFE / ELSE / ENDIF', 'Montagem condicional (a expressão precisa ser constante)', 'aula45'],
+    ['IFDEF / IFNDEF nome', 'Monta se o símbolo (ou macro) já foi definido', 'aula45'],
+    ['IFB / IFNB <arg>  IFIDN / IFDIF <a>,<b>', 'Argumento vazio? / iguais? (IFIDNI e IFDIFI ignoram maiúsculas)', 'aula45'],
+    ['nome STRUC ... nome ENDS', 'Estrutura: campos com deslocamentos a partir de 0', 'aula46'],
+    ['var nome <v1,,v3>  /  n DUP(<>)', 'Instância de estrutura (vírgula vazia = valor padrão do campo)', 'aula46'],
+    ['var.campo  [BX].campo  ESTRUT.campo', 'Acesso a campo; o tipo do campo dá o tamanho do operando', 'aula46'],
+    ['END rotulo', 'Fim do fonte e ponto de entrada', 'aula00']
   ];
   const EA = [
     ['[desloc]', '6'], ['[BX] [BP] [SI] [DI]', '5'], ['[BX+desloc] [BP+desloc] [SI+desloc] [DI+desloc]', '9'],
@@ -221,7 +256,7 @@
 
   function criar(sub) {
     const conteudo = h('div.aula', { style: { maxWidth: '130ch' } });
-    const abas = [['instr', 'Instruções'], ['fpu', '8087'], ['int21', 'INT 21h (DOS)'], ['bios', 'BIOS'], ['portas', 'Portas e memória'], ['ciclos', 'Endereçamento e ciclos'], ['ascii', 'Tabela ASCII (CP437)'], ['atalhos', 'Atalhos']];
+    const abas = [['instr', 'Instruções'], ['fpu', '8087'], ['int21', 'INT 21h (DOS)'], ['bios', 'BIOS'], ['portas', 'Portas e memória'], ['ciclos', 'Endereçamento e ciclos'], ['diretivas', 'Diretivas e macros'], ['ascii', 'Tabela ASCII (CP437)'], ['atalhos', 'Atalhos']];
     const barra = h('div.ref-tabs');
     const mostrar = (id, filtro) => {
       barra.querySelectorAll('.tab').forEach(t => t.classList.toggle('ativo', t.dataset.id === id));
@@ -258,6 +293,9 @@
           '<h3>Endereçamentos válidos no 8086</h3><p>Base (<code>BX</code> ou <code>BP</code>) + índice (<code>SI</code> ou <code>DI</code>) + deslocamento, cada parte opcional. Com <code>BP</code>, o segmento padrão é <code>SS</code>; nos outros casos, <code>DS</code>.</p>' +
           '<p>Inválidos: <code>[AX]</code>, <code>[CX]</code>, <code>[DX]</code>, <code>[SP]</code>, <code>[BX+BP]</code>, <code>[SI+DI]</code>, <code>[SI*2]</code>.</p>' +
           '<h3>Relógio</h3><p>O IBM PC original roda a 4,77 MHz: 1 ciclo ≈ 210 ns. Uma instrução de 100 ciclos leva cerca de 21 µs.</p>';
+      } else if (id === 'diretivas') {
+        conteudo.innerHTML = '<p>Diretivas não viram instruções: são ordens para o montador. Estas são as que o montador do curso entende (as outras são ignoradas com um aviso). O link leva à aula que explica cada uma.</p>' +
+          tabela(['Diretiva', 'O que faz', 'Aula'], DIRETIVAS.map(r => ['<code>' + escHtml(r[0]) + '</code>', escHtml(r[1]), '<a href="#aula/' + r[2] + '">' + r[2].replace('aula', 'Aula ') + '</a>']));
       } else if (id === 'ascii') {
         const g = h('div.ascii-g');
         const CP = window.Asm8086.CP437;

@@ -3,7 +3,7 @@ id: cap17
 numero: 17
 parte: 6
 titulo: "A área de dados da BIOS, a EBDA e as tabelas em ROM"
-aulas: aula12; aula14; aula28
+aulas: aula12; aula14; aula28; aula46
 ---
 
 # Capítulo 17 · A área de dados da BIOS, a EBDA e as tabelas em ROM

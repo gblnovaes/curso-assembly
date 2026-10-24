@@ -66,6 +66,12 @@ em `ES:SI`. [Cap. 14](cap14-memoria-estendida-modo-protegido.md)
 
 **IVT.** Tabela de vetores de interrupção, em `0000:0000` a `0000:03FF`. [Cap. 2](cap02-vetores-e-excecoes.md)
 
+**Macro.** Trecho de fonte com nome que o montador copia no lugar de cada chamada, trocando os
+parâmetros, antes de gerar o código. Não existe para a CPU. Aula 45
+
+**Mickey.** Unidade de movimento do mouse (normalmente 1/200 de polegada), usada pela `INT 33H`
+(`AX=0BH`). [Cap. 15](cap15-mouse-ps2.md), Aula 47
+
 **Micro Channel.** Barramento dos PS/2 (exceto Model 25 e 30), com interrupções por nível e
 configuração por POS. [Cap. 13](cap13-int15-servicos.md), [Cap. 18](cap18-compartilhamento-de-irq.md)
 
@@ -83,6 +89,9 @@ até 16 MB. [Cap. 14](cap14-memoria-estendida-modo-protegido.md)
 **RTC.** Relógio de tempo real com bateria (AT e posteriores). [Cap. 7](cap07-tempo-e-relogios.md)
 
 **Scan code.** Número da tecla física, independente do caractere. [Cap. 6](cap06-teclado.md)
+
+**STRUC.** Diretiva do MASM que descreve um registro: cada campo vira uma constante com o seu
+deslocamento. Aula 46
 
 **Teletipo.** Saída "de máquina de escrever": escreve e avança o cursor, interpretando CR, LF,
 Backspace e Bell (`INT 10H, AH=0EH`). [Cap. 3](cap03-video-modos-e-texto.md)

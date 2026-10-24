@@ -40,7 +40,7 @@
     for (let k = 0; k < ex.testes.length; k++) {
       const t = ex.testes[k];
       const r = { nome: t.nome || ('Teste ' + (k + 1)), ok: true, msgs: [] };
-      const run = M.runProgram(codigo, { setup: t.setup, input: t.entrada, timer: !!ex.timer, maxSteps: ex.maxPassos || 3000000, arquivos: t.arquivos, linhaComando: t.linhaComando, residente: t.residente });
+      const run = M.runProgram(codigo, { setup: t.setup, input: t.entrada, timer: !!ex.timer, maxSteps: ex.maxPassos || 3000000, arquivos: t.arquivos, linhaComando: t.linhaComando, residente: t.residente, mouse: t.mouse });
       const m = run.machine;
       const esp = t.espera || {};
       const statusEsperado = esp.status || 'terminado';
@@ -128,6 +128,8 @@
         } else if (key === 'arquivosFechados') {
           const abertos = m.handles.slice(5).filter(h => h && h.tipo === 'arq').length;
           if (abertos) { r.ok = false; r.msgs.push(abertos + ' arquivo(s) ficaram abertos: feche com INT 21h, AH=3Eh.'); }
+        } else if (key === 'mouseSemRotina') {
+          if (exp && m.mouse && m.mouse.rotina) { r.ok = false; r.msgs.push('A rotina do mouse ficou instalada: antes de sair, desinstale com AX=0Ch e CX=0 (senão o driver chama um código que não existe mais).'); }
         } else if (key === 'portas') {
           const val = { pit0: m.pit[0].reload, pit2: m.pit[2].reload, '61': m.ports[0x61] & 3, imr: m.pic.imr };
           for (const p of Object.keys(exp)) if (val[p] !== exp[p]) { r.ok = false; r.msgs.push((p === 'pit0' ? 'O divisor do canal 0 do PIT' : p === 'pit2' ? 'O divisor do canal 2 do PIT (alto-falante)' : p === '61' ? 'Os bits 0 e 1 da porta 61h' : 'A máscara do PIC (porta 21h)') + ' deveria ser ' + exp[p] + ', mas é ' + val[p] + '.'); }

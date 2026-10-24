@@ -9,6 +9,19 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
+## Capturas de tela
+
+| | |
+|---|---|
+| ![Tela inicial](docs/screenshots/inicio.png) | ![Tela de boot da BIOS](docs/screenshots/boot.png) |
+| **Tela inicial**, com o progresso do aluno | **Boot da BIOS** ao abrir o curso |
+| ![Uma aula](docs/screenshots/aula.png) | ![Laboratório](docs/screenshots/laboratorio.png) |
+| **Aula 6**: modos de endereçamento, com o índice ao lado | **Laboratório** no estilo Turbo Debugger: registradores, flags, pilha e memória |
+| ![Livro da BIOS](docs/screenshots/livro-bios.png) | ![Invasores do espaço](docs/screenshots/jogo-invasores.png) |
+| **Livro da BIOS** dentro do aplicativo | **Invasores do espaço** (aula 35), rodando no 8086 simulado |
+| ![MINIOS](docs/screenshots/minios.png) | ![Programa de pintura](docs/screenshots/pinta.png) |
+| **MINIOS** (aula 44): o `DIR` do disquete depois do boot | **PINTA.ASM** (aula 47): pintura no modo 13h com o mouse pela `INT 33h` |
+
 ## O que tem dentro
 
 - **Aulas detalhadas**, com diagramas em texto, notas sobre como funciona o 8086 por dentro, histórias da época ("Nos anos 90") e um resumo no fim.

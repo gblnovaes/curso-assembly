@@ -1,0 +1,96 @@
+{
+  "name": "curso-assembly-8086",
+  "version": "1.0.0",
+  "description": "Curso interativo de Assembly Intel 8086 (MASM/TASM, DOS 16 bits) com simulador e depurador no estilo dos anos 90",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "conteudo": "node tools/build-conteudo.js",
+    "test": "node tests/core.test.js && node tests/conteudo.test.js",
+    "web": "npx http-server app -p 8086 -c-1"
+  },
+  "keywords": [
+    "assembly",
+    "8086",
+    "masm",
+    "tasm",
+    "dos",
+    "curso",
+    "electron"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "author": "gblnovaes",
+  "build": {
+    "appId": "br.curso.assembly8086",
+    "productName": "Curso Assembly 8086",
+    "files": [
+      "main.js",
+      "package.json",
+      "app/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "CursoAssembly8086-portatil.exe"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Education",
+      "maintainer": "gblnovaes",
+      "synopsis": "Curso interativo de Assembly 8086"
+    },
+    "appImage": {
+      "artifactName": "CursoAssembly8086-${version}-x86_64.AppImage"
+    },
+    "deb": {
+      "artifactName": "curso-assembly-8086_${version}_amd64.deb"
+    },
+    "publish": null
+  },
+  "homepage": "https://github.com/gblnovaes/curso-assembly",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gblnovaes/curso-assembly.git"
+  }
+}

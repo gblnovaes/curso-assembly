@@ -1,0 +1,17 @@
+[
+  { "id": 0, "titulo": "Primeiros passos" },
+  { "id": 1, "titulo": "Registradores e aritmética" },
+  { "id": 2, "titulo": "FLAGS e decisões" },
+  { "id": 3, "titulo": "Memória e endereçamento" },
+  { "id": 4, "titulo": "Pilha e procedimentos" },
+  { "id": 5, "titulo": "Segmentos e strings" },
+  { "id": 6, "titulo": "Interrupções" },
+  { "id": 7, "titulo": "Otimização" },
+  { "id": 8, "titulo": "Projetos, depuração e aritmética com sinal" },
+  { "id": 9, "titulo": "Gráficos VGA e modo 13h", "descricao": "pixels em A000h, paletas, sprites e demos" },
+  { "id": 10, "titulo": "Arquivos e o DOS por dentro", "descricao": "handles, PSP, linha de comando, alocação de memória" },
+  { "id": 11, "titulo": "Programas residentes (TSR)", "descricao": "ganchos de teclado e timer, relógio na tela" },
+  { "id": 12, "titulo": "Hardware direto e matemática", "descricao": "PIT, alto-falante, BCD, ponto fixo e coprocessador 8087" },
+  { "id": 13, "titulo": "Programação de jogos", "descricao": "laço do jogo, tempo, teclado direto, som e sete jogos completos" },
+  { "id": 14, "titulo": "Construindo um sistema operacional", "descricao": "setor de boot, kernel, sistema de arquivos, shell e utilitários" }
+]

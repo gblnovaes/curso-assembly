@@ -2,6 +2,8 @@
 
 Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a cara e o espírito da programação DOS dos anos 90. Ele roda como aplicativo de desktop (Electron) ou direto no navegador.
 
+**▶ [Rodar no navegador](https://gblnovaes.github.io/curso-assembly/)**: abre o curso completo direto pelo GitHub Pages, sem instalar nada. O progresso fica salvo no próprio navegador.
+
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║  48 aulas · 184 exercícios corrigidos automaticamente        ║
@@ -83,7 +85,9 @@ No aplicativo, **F11** liga a tela cheia.
 
 ### No navegador
 
-Abra `app/index.html` direto no navegador (funciona com `file://`), ou sirva a pasta:
+A versão publicada está em **[https://gblnovaes.github.io/curso-assembly/](https://gblnovaes.github.io/curso-assembly/)** e é atualizada sozinha a cada push na `main` (workflow `.github/workflows/pages.yml`, que roda os testes e publica a pasta `app/`).
+
+Para rodar localmente, abra `app/index.html` direto no navegador (funciona com `file://`), ou sirva a pasta:
 
 ```
 npm run web

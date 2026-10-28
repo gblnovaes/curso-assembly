@@ -70,6 +70,10 @@ Tudo foi escrito do zero em JavaScript, sem dependências:
 
 Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA-ME.md).
 
+### Trilha avançada (em construção)
+
+A continuação do curso, do módulo 16 em diante (386, modo protegido e sistemas operacionais), fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Enquanto está em construção ela fica escondida: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
+
 ## Como executar
 
 ### Aplicativo de desktop (Electron)
@@ -98,7 +102,7 @@ e acesse `http://localhost:8086`. Acrescente `?semboot` ao endereço para pular 
 ## Para quem vai mexer no curso
 
 ```
-npm run conteudo    # recompila as aulas (conteudo/*.md -> app/conteudo.js) e o livro (livro-bios/*.md -> app/livro.js)
+npm run conteudo    # recompila as aulas (conteudo/*.md -> app/conteudo.js), a trilha avançada (conteudo-386/*.md -> app/conteudo386.js) e o livro (livro-bios/*.md -> app/livro.js)
 npm test            # testa o montador, o simulador e todas as aulas
 ```
 
@@ -110,6 +114,7 @@ Estrutura:
 app/
   index.html          página do aplicativo
   conteudo.js         gerado a partir de conteudo/ (não edite à mão)
+  conteudo386.js      gerado a partir de conteudo-386/ (não edite à mão)
   livro.js            gerado a partir de livro-bios/ (não edite à mão)
   core/asm.js         montador 8086/8087 (MASM/TASM)
   core/cpu.js         simulador do 8086, do 8087 e do PC
@@ -121,6 +126,7 @@ conteudo/
   aulaNN-*.md         as aulas, em Markdown com blocos especiais
   modulos.json        a lista de módulos
   LEIA-ME.md          o formato das aulas
+conteudo-386/         a trilha avançada (mesmo formato, módulos 16 em diante)
 livro-bios/           o Livro da BIOS (capítulos e apêndices em Markdown)
 tests/                testes do núcleo e do conteúdo
 tools/                build do conteúdo

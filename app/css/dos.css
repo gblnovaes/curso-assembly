@@ -519,3 +519,12 @@ canvas.tela:focus { box-shadow: 0 0 0 2px var(--cE); }
   .ref-tab td { display: block; }
   .ref-tab td::before { display: block; }
 }
+
+/* trilha avançada: mesma disposição da tela de aulas; o menu some enquanto a trilha está escondida */
+#menubar .mi[hidden] { display: none; }
+#v-avancado .indice { width: 34ch; flex: none; }
+#v-avancado .leitura { flex: 1; }
+@media (max-width: 800px) {
+  #v-avancado { flex-direction: column; }
+  #v-avancado .indice { width: auto; max-height: 26%; }
+}

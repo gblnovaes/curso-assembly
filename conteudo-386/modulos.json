@@ -1,0 +1,15 @@
+[
+  { "id": 16, "titulo": "Programas grandes", "descricao": "o caminho até o 386, .EXE e o cabeçalho MZ, vários módulos com PUBLIC e EXTRN, INCLUDE e ferramentas reais" },
+  { "id": 17, "titulo": "O 186 e o 286", "descricao": "as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA" },
+  { "id": 18, "titulo": "O 386 em modo real", "descricao": "registradores de 32 bits, FS e GS, prefixos de tamanho e endereçamento com escala" },
+  { "id": 19, "titulo": "Entrando no modo protegido", "descricao": "GDT, descritores, seletores, CR0 e o modelo plano" },
+  { "id": 20, "titulo": "Interrupções e exceções em 32 bits", "descricao": "IDT, as exceções 0 a 31, o 8259 remapeado e a falha tripla" },
+  { "id": 21, "titulo": "Paginação", "descricao": "CR3, diretório e tabelas de páginas, #PF e o kernel na metade alta" },
+  { "id": 22, "titulo": "Anéis e chamadas de sistema", "descricao": "CPL, DPL e RPL, a TSS, IOPL e o modo usuário" },
+  { "id": 23, "titulo": "Multitarefa", "descricao": "troca de tarefas por hardware e por software, escalonador e processos" },
+  { "id": 24, "titulo": "O modo virtual 8086", "descricao": "um monitor v86 que roda programas do DOS dentro do seu kernel" },
+  { "id": 25, "titulo": "C para quem já sabe Assembly", "descricao": "o Assembly que o compilador gera, cdecl, GCC cruzado e o ligador" },
+  { "id": 26, "titulo": "Um kernel de 32 bits estilo Unix", "descricao": "ELF, drivers, FAT12, fork e exec, shell e pipes" },
+  { "id": 27, "titulo": "Desenho de sistemas operacionais", "descricao": "DOS, Unix, Minix, Linux e NT: monolítico contra microkernel" },
+  { "id": 28, "titulo": "Depois do 386", "descricao": "CPUID, APIC, modo de 64 bits e UEFI" }
+]

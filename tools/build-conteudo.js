@@ -14,6 +14,9 @@ const SRC = path.join(ROOT, 'conteudo');
 const OUT = path.join(ROOT, 'app', 'conteudo.js');
 const LIVRO = path.join(ROOT, 'livro-bios');
 const OUT_LIVRO = path.join(ROOT, 'app', 'livro.js');
+// trilha avançada (386 e modo protegido): pasta e arquivo próprios, não mexe no curso principal
+const SRC_AV = path.join(ROOT, 'conteudo-386');
+const OUT_AV = path.join(ROOT, 'app', 'conteudo386.js');
 
 function esc(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -28,6 +31,7 @@ function inline(s) {
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) => {
     let href = u;
     if (u.startsWith('aula:')) href = '#aula/' + u.slice(5);
+    else if (u.startsWith('avancado:')) href = '#avancado/' + u.slice(9);
     else if (u.startsWith('ref:')) href = '#ref/' + u.slice(4);
     else if (u.startsWith('livro:')) href = '#livro/' + u.slice(6);
     else if (u === 'lab') href = '#lab';
@@ -329,14 +333,13 @@ function buildLivro(aulas) {
   return { partes, capitulos: caps };
 }
 
-function main() {
-  const modulos = JSON.parse(fs.readFileSync(path.join(SRC, 'modulos.json'), 'utf8'));
-  const files = fs.readdirSync(SRC).filter(f => /^aula\d+.*\.md$/.test(f)).sort();
+// Lê as aulas de uma pasta. ids e exIds são compartilhados entre as trilhas: o progresso
+// salvo é indexado pelo id, então uma aula ou exercício não pode repetir em nenhuma delas.
+function lerTrilha(src, ids, exIds) {
+  const files = fs.readdirSync(src).filter(f => /^aula\d+.*\.md$/.test(f)).sort();
   const aulas = [];
-  const ids = new Set();
-  const exIds = new Set();
   for (const f of files) {
-    const a = parseLesson(path.join(SRC, f));
+    const a = parseLesson(path.join(src, f));
     if (!a.id) throw new Error(f + ': falta id');
     if (ids.has(a.id)) throw new Error('id repetido: ' + a.id);
     ids.add(a.id);
@@ -346,7 +349,22 @@ function main() {
     }
     aulas.push(a);
   }
-  aulas.sort((x, y) => x.numero - y.numero);
+  return aulas.sort((x, y) => x.numero - y.numero);
+}
+
+function buildAvancado(ids, exIds) {
+  if (!fs.existsSync(SRC_AV)) return null;
+  const modulos = JSON.parse(fs.readFileSync(path.join(SRC_AV, 'modulos.json'), 'utf8'));
+  const aulas = lerTrilha(SRC_AV, ids, exIds);
+  for (const a of aulas) if (!modulos.some(m => m.id === a.modulo)) throw new Error(a.id + ': módulo ' + a.modulo + ' não existe em conteudo-386/modulos.json');
+  return { modulos, aulas };
+}
+
+function main() {
+  const modulos = JSON.parse(fs.readFileSync(path.join(SRC, 'modulos.json'), 'utf8'));
+  const ids = new Set();
+  const exIds = new Set();
+  const aulas = lerTrilha(SRC, ids, exIds);
   const out = '/* Gerado por tools/build-conteudo.js a partir de conteudo/*.md. Não edite à mão. */\n' +
     'window.CURSO_CONTEUDO = ' + JSON.stringify({ modulos, aulas, geradoEm: new Date().toISOString().slice(0, 10) }) + ';\n';
   fs.writeFileSync(OUT, out);
@@ -360,7 +378,15 @@ function main() {
     fs.writeFileSync(OUT_LIVRO, outL);
     console.log(`livro da BIOS: ${livro.capitulos.length} capítulos e apêndices -> ${path.relative(ROOT, OUT_LIVRO)} (${(outL.length / 1024).toFixed(0)} KB)`);
   }
+  const av = buildAvancado(ids, exIds);
+  if (av) {
+    const outA = '/* Gerado por tools/build-conteudo.js a partir de conteudo-386/*.md. Não edite à mão. */\n' +
+      'window.CURSO_386 = ' + JSON.stringify({ modulos: av.modulos, aulas: av.aulas, geradoEm: new Date().toISOString().slice(0, 10) }) + ';\n';
+    fs.writeFileSync(OUT_AV, outA);
+    const nExA = av.aulas.reduce((s, a) => s + a.blocks.filter(b => b.t === 'ex').length, 0);
+    console.log(`trilha avançada: ${av.aulas.length} aulas, ${nExA} exercícios -> ${path.relative(ROOT, OUT_AV)} (${(outA.length / 1024).toFixed(0)} KB)`);
+  }
 }
 
 if (require.main === module) main();
-module.exports = { parseLesson, mdToHtml, buildLivro };
+module.exports = { parseLesson, mdToHtml, buildLivro, lerTrilha, SRC_AV };

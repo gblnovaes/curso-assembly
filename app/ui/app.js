@@ -8,7 +8,7 @@
 
   const App = {};
   window.App = App;
-  let lab = null, ref = null, livro = null;
+  let lab = null, ref = null, livro = null, avancado = null;
   let aulaAtual = store.get('ultimaAula', aulas[0] && aulas[0].id);
 
   // ---------------- opções / temas ----------------
@@ -20,6 +20,8 @@
     r.dataset.crt = o.crt ? 'sim' : 'nao';
     r.style.setProperty('--fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.72) : 15) + 'px' : (o.tamanho || 21) + 'px');
     r.style.setProperty('--code-fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.68) : 14) + 'px' : ((o.tamanho || 21) - 1) + 'px');
+    const mi = document.querySelector('#menubar .mi[data-avancado]');
+    if (mi) mi.hidden = !window.Avancado.ativa();
   }
 
   // ---------------- diálogos ----------------
@@ -63,12 +65,14 @@
     const concluida = (exs.length === 0 || feitos === exs.length) && qResp === qTot && (lidas[a.id] || qTot + exs.length > 0);
     return { exs: exs.length, feitos, qTot, qResp, qOk, lida: !!lidas[a.id], concluida: concluida && (lidas[a.id] || exs.length + qTot > 0) };
   }
+  App.progressoAula = progressoAula;
   App.registrarExercicio = function (id, ok, codigo) {
     const t = store.get('exercicios', {});
     const prev = t[id] || {};
     t[id] = Object.assign(prev, { codigo, ok: prev.ok || ok, tentativas: (prev.tentativas || 0) + 1 });
     store.set('exercicios', t);
     App.atualizarIndice();
+    if (avancado && location.hash.startsWith('#avancado')) avancado.atualizarIndice();
   };
 
   // ---------------- índice ----------------
@@ -226,7 +230,8 @@
       h('label', null, 'Tamanho do texto:', tam),
       chk('crt', ' Efeito de tubo CRT (linhas de varredura)'),
       chk('som', ' Som do alto-falante do PC'),
-      chk('boot', ' Mostrar a tela de boot ao abrir')
+      chk('boot', ' Mostrar a tela de boot ao abrir'),
+      chk('avancado', ' Mostrar a trilha avançada (386, em construção)')
     ], [['Fechar', null]]);
   }
 
@@ -256,6 +261,7 @@
     ['≡', [['Sobre…', sobre], ['Opções…', opcoes]]],
     ['~A~rquivo', [['Novo programa', () => { location.hash = '#lab'; lab.novo(); }], ['Abrir .ASM…', () => { location.hash = '#lab'; lab.abrir(); }], ['Salvar .ASM', () => lab.salvar()], null, ['Tela inicial', () => { location.hash = '#inicio'; }]]],
     ['A~u~las', () => aulas.map(a => [a.numero + '. ' + a.titulo, () => { location.hash = '#aula/' + a.id; }])],
+    ['A~v~ançado', () => avancado.itensMenu(), 'avancado'],
     ['~L~aboratório', () => [['Abrir laboratório', () => { location.hash = '#lab'; }, 'F4'], ['Executar', () => { location.hash = '#lab'; lab.motor.executar(); }, 'F9'], ['Passo', () => { location.hash = '#lab'; lab.motor.passo(); }, 'F7'], ['Reiniciar', () => { location.hash = '#lab'; lab.motor.reiniciar(); }, 'Ctrl+F2'], ['Tela do usuário', () => { location.hash = '#lab'; lab.telaCheia(); }, 'Alt+F5'], null,
       ...EXEMPLOS.slice(0, 40).map(e => [e.titulo, () => { lab.carregar(e.codigo, { titulo: e.arquivo }); location.hash = '#lab'; }])]],
     ['Livro\u00a0~B~IOS', () => [['Buscar no livro…', () => { location.hash = '#livro/busca'; }, 'Ctrl+F'], null,
@@ -284,9 +290,10 @@
     menuAberto = { el: mi, dd };
   }
   function montarMenus(bar) {
-    MENUS.forEach(([rot, itens], i) => {
+    MENUS.forEach(([rot, itens, marca], i) => {
       const html = rot.replace(/~(.)~/g, '<span class="hk">$1</span>');
       const mi = h('div.mi', { html });
+      if (marca === 'avancado') { mi.dataset.avancado = ''; mi.hidden = !window.Avancado.ativa(); }
       mi.addEventListener('click', (e) => { e.stopPropagation(); if (menuAberto && menuAberto.el === mi) fecharMenu(); else abrirMenu(mi, itens); });
       mi.addEventListener('mouseenter', () => { if (menuAberto && menuAberto.el !== mi) abrirMenu(mi, itens); });
       mi.dataset.idx = i;
@@ -304,7 +311,8 @@
   const views = {};
   function rota() {
     const [v, arg, ...resto] = location.hash.replace(/^#/, '').split('/');
-    const nome = ({ aula: 'aulas', lab: 'lab', ref: 'ref', progresso: 'prog', livro: 'livro' })[v] || 'inicio';
+    let nome = ({ aula: 'aulas', lab: 'lab', ref: 'ref', progresso: 'prog', livro: 'livro', avancado: 'avancado' })[v] || 'inicio';
+    if (nome === 'avancado' && !window.Avancado.ativa()) nome = 'inicio';
     for (const k of Object.keys(views)) views[k].classList.toggle('ativo', k === nome);
     if (nome === 'aulas') { if (arg !== aulaAtual || !wLeitura.corpo.firstChild) App.mostrarAula(arg || aulaAtual); }
     if (nome === 'inicio') views.inicio.firstChild.render();
@@ -312,6 +320,7 @@
     if (nome === 'ref') ref.mostrar(arg);
     if (nome === 'livro') livro.mostrar(arg, resto);
     if (nome === 'lab') lab.render('aba');
+    if (nome === 'avancado') avancado.mostrar(arg);
     document.querySelector('#status .msg').textContent = dicaStatus();
   }
 
@@ -414,6 +423,8 @@
     livro = window.Livro.criar();
     views.livro = livro.view;
     views.prog = h('div.view#v-prog', null, telaProgresso());
+    avancado = window.Avancado.criar(App);
+    views.avancado = avancado.view;
     for (const v of Object.values(views)) main.append(v);
     lab = new window.Depurador.Laboratorio(views.lab, App);
     for (const e of EXEMPLOS) lab.selExemplo.append(h('option', { value: e.id }, e.titulo));

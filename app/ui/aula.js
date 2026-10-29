@@ -22,6 +22,25 @@
     return wrap;
   }
 
+  // Código NASM da trilha avançada: roda na máquina 386
+  function blocoNasm(b) {
+    const U = window.Maquina386UI;
+    const pre = h('pre.asm', { html: U.realce(b.code) });
+    const wrap = h('div.codigo');
+    let painel = null;
+    const bar = h('div.cbar', null, h('span.tt', null, b.titulo || 'NASM · 386'),
+      h('button', { onclick: () => { navigator.clipboard && navigator.clipboard.writeText(b.code); window.App.status('Código copiado.'); }, title: 'Copiar o código' }, 'Copiar'),
+      b.soLeitura ? null : h('button', {
+        onclick: () => {
+          if (painel) { painel.parar(); painel.el.remove(); painel = null; return; }
+          painel = new U.Painel386(b.code, { modo: b.modo, org: b.org, entrada: b.entrada });
+          wrap.after(painel.el);
+        }, title: 'Executa aqui mesmo, na máquina 386 do curso'
+      }, '▶ Executar aqui'));
+    wrap.append(bar, pre);
+    return wrap;
+  }
+
   function blocoQuiz(b, aula, idx) {
     const key = aula.id + ':q' + idx;
     const salvo = store.get('quiz', {})[key] || {};
@@ -67,10 +86,14 @@
 
   function blocoExercicio(b, aula) {
     const ex = b.ex;
+    const e386 = ex.maquina === '386';
+    const V = e386 ? window.Verificador386 : window.Verificador;
+    const rl = e386 ? window.Maquina386UI.realce : realce;
+    let painel = null;
     const estado = () => store.get('exercicios', {})[ex.id] || {};
     const st = estado();
     const ed = window.Depurador.criarEditor(st.codigo || ex.inicial || '', {
-      mini: true, onChange: (v) => { const t = store.get('exercicios', {}); t[ex.id] = Object.assign(t[ex.id] || {}, { codigo: v }); store.set('exercicios', t); }
+      mini: true, realce: e386 ? rl : undefined, onChange: (v) => { const t = store.get('exercicios', {}); t[ex.id] = Object.assign(t[ex.id] || {}, { codigo: v }); store.set('exercicios', t); }
     });
     const linhas = (st.codigo || ex.inicial || '').split('\n').length;
     ed.el.style.height = Math.min(26, Math.max(8, linhas + 2)) * 1.15 + 'em';
@@ -85,9 +108,9 @@
     if (ex.maxBytes) regras.push('no máximo ' + ex.maxBytes + ' bytes de código');
     if (ex.maxCiclos) regras.push('no máximo ' + ex.maxCiclos + ' ciclos');
     const verificar = () => {
-      const r = window.Verificador.verificar(ex, ed.valor);
+      const r = V.verificar(ex, ed.valor);
       res.innerHTML = '';
-      for (const msg of window.Verificador.mensagens(r)) {
+      for (const msg of V.mensagens(r)) {
         const d = h('div', { class: msg.t === 'ok' ? 'r-ok' : msg.t === 'erro' ? 'r-bad' : '' }, msg.msg);
         if (msg.line) { d.style.cursor = 'pointer'; d.addEventListener('click', () => ed.irPara(msg.line)); }
         res.append(d);
@@ -104,6 +127,13 @@
       ed.el,
       h('div.acoes', null,
         h('button.btn', { onclick: verificar }, '√ Verificar'),
+        e386 ? h('button.btn.sec', {
+          onclick: () => {
+            if (painel) { painel.parar(); painel.el.remove(); }
+            painel = new window.Maquina386UI.Painel386(ed.valor, { modo: ex.modo, org: ex.org });
+            res.before(painel.el);
+          }, title: 'Roda o seu código na máquina 386, passo a passo'
+        }, '▶ Rodar na máquina 386') :
         h('button.btn.sec', { onclick: () => window.App.abrirNoLab(ed.valor, { titulo: ex.id.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) + '.ASM', exercicio: ex }) }, 'Depurar no laboratório'),
         ex.dicas && ex.dicas.length ? h('button.btn.sec', {
           onclick: () => {
@@ -119,7 +149,7 @@
         }, 'Recomeçar'),
         ex.solucao ? h('button.btn.sec', {
           onclick: () => window.App.confirmar(estado().ok ? 'Ver a solução de referência?' : 'Tem certeza? Tentar mais um pouco ensina muito. Ver a solução mesmo assim?', () => {
-            window.App.dialogo('Solução: ' + ex.titulo, h('pre.asm', { html: realce(ex.solucao), style: { maxHeight: '60vh', overflow: 'auto' } }),
+            window.App.dialogo('Solução: ' + ex.titulo, h('pre.asm', { html: rl(ex.solucao), style: { maxHeight: '60vh', overflow: 'auto' } }),
               [['Copiar para o editor', () => { ed.valor = ex.solucao; }], ['Fechar', null]]);
           })
         }, 'Solução') : null),
@@ -134,6 +164,7 @@
       switch (b.t) {
         case 'html': el.append(h('div', { html: b.html })); break;
         case 'asm': el.append(blocoCodigo(b, aula)); break;
+        case 'nasm': el.append(blocoNasm(b)); break;
         case 'quiz': el.append(blocoQuiz(b, aula, qi++)); break;
         case 'ex': el.append(blocoExercicio(b, aula)); break;
         case 'widget': el.append(window.Widgets.criar(b.nome, b.params)); break;
@@ -141,7 +172,7 @@
           if (b.titulo) el.append(h('div.diag-t', null, b.titulo));
           el.append(h('pre.diag', null, b.text)); break;
         case 'nota': {
-          const rot = { dica: 'DICA', atencao: 'ATENÇÃO', anos90: 'NOS ANOS 90', cpu: 'POR DENTRO DO 8086', resumo: 'RESUMO' }[b.tipo] || b.tipo.toUpperCase();
+          const rot = { dica: 'DICA', atencao: 'ATENÇÃO', anos90: 'NOS ANOS 90', cpu: aula.modulo >= 17 ? 'POR DENTRO DO 386' : 'POR DENTRO DO 8086', resumo: 'RESUMO' }[b.tipo] || b.tipo.toUpperCase();
           el.append(h('div.nota.' + b.tipo, null, h('div.nt', { html: '[ ' + rot + (b.titulo ? ': ' + b.titulo : '') + ' ]' }), h('div', { html: b.html })));
           break;
         }

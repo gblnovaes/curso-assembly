@@ -12,7 +12,7 @@ objetivos: montar, ligar e depurar um programa com as ferramentas da época; rod
 
 Tudo o que você escreveu até aqui roda num PC real com MS-DOS. O simulador do curso monta a sintaxe do MASM e do TASM, faz o papel do LINK e carrega o programa como o DOS carregaria ([aula 49](avancado:aula49)). Esta aula mostra as ferramentas que faziam esse trabalho de verdade e como usá-las hoje.
 
-Ela também apresenta o **NASM**. A partir do [módulo 19](avancado:aula48), quando o programa sai do DOS e passa a ser um sistema operacional, a trilha usa NASM e um emulador de PC completo: o NASM gera arquivos binários puros (um setor de boot, um kernel) sem precisar de ligador, roda em qualquer sistema e é o montador mais usado em projetos de sistemas operacionais amadores.
+Ela também apresenta o **NASM**. A partir do [módulo 17](avancado:aula54), a trilha usa NASM e uma máquina 386 completa, com tela, disco, BIOS e um DOS mínimo. É o caminho até o modo protegido, quando o programa sai do DOS e passa a ser um sistema operacional: o NASM gera arquivos binários puros (um setor de boot, um kernel) sem precisar de ligador, roda em qualquer sistema e é o montador mais usado em projetos de sistemas operacionais amadores.
 
 ## O ciclo editar, montar, ligar, depurar
 

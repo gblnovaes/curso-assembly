@@ -63,7 +63,7 @@
     const lh = () => parseFloat(getComputedStyle(ta).lineHeight) || 20;
 
     function atualizar() {
-      pre.innerHTML = realce(ta.value) + '\n\n';
+      pre.innerHTML = (opts.realce || realce)(ta.value) + '\n\n';
       const n = ta.value.split('\n').length;
       let g = '';
       for (let i = 1; i <= n; i++) g += '<div class="' + (bps.has(i) ? 'bp' : '') + (erros.has(i) ? ' erro' : '') + '">' + (bps.has(i) ? '●' : i) + '</div>';

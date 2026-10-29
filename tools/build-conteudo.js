@@ -197,6 +197,7 @@ function parseLesson(file, texto) {
       const attrs = {};
       info.replace(/(\w+)(?:="([^"]*)")?/g, (_, k, v) => { attrs[k] = v === undefined ? true : v; });
       if (kind === 'asm') blocks.push({ t: 'asm', code: text, run: !!attrs.executar, titulo: attrs.titulo || '', soLeitura: !!attrs.fragmento, parametros: attrs.parametros || '', entrada: attrs.entrada || '', jogo: !!attrs.jogo, boot: !!attrs.boot });
+      else if (kind === 'nasm') blocks.push({ t: 'nasm', code: text, run: !!attrs.executar, titulo: attrs.titulo || '', soLeitura: !!attrs.fragmento, modo: attrs.modo || 'com', org: attrs.org || '', entrada: attrs.entrada || '', termina: attrs.termina || '' });
       else if (kind === 'quiz') blocks.push({ t: 'quiz', qs: parseQuiz(text, file) });
       else if (kind === 'exercicio') blocks.push({ t: 'ex', ex: parseExercise(text, file) });
       else if (kind === 'widget') blocks.push({ t: 'widget', nome: info.split(/\s+/)[0], params: text.trim() ? JSON.parse(text) : {} });
@@ -245,7 +246,7 @@ function indiceBusca(cap) {
         const m = /^<h[234] id="([^"]+)">(.*?)<\/h[234]>$/.exec(p);
         if (m) secs.push({ id: m[1], titulo: semTags(m[2]), texto: '' }); else add(semTags(p));
       }
-    } else if (b.t === 'asm') add((b.titulo || '') + ' ' + b.code);
+    } else if (b.t === 'asm' || b.t === 'nasm') add((b.titulo || '') + ' ' + b.code);
     else if (b.t === 'diagrama') add((b.titulo || '') + ' ' + b.text);
     else if (b.t === 'nota') add(semTags(b.titulo + ' ' + b.html));
   }

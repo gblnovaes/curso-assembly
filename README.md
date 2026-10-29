@@ -76,7 +76,7 @@ A continuação do curso, do módulo 16 em diante (386, modo protegido e sistema
 
 Já pronto: módulo 16, **Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
 
-Já pronto: módulo 16, **Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
+Também prontos: módulo 17, **O 186 e o 286** (aulas 54 a 56: as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA), e módulo 18, **O 386 em modo real** (aulas 57 a 60: registradores de 32 bits, endereços com escala, FS e GS, as instruções novas e a detecção da CPU).
 
 ## Como executar
 

@@ -22,6 +22,23 @@ A trilha fica **escondida** enquanto está em construção. Para vê-la:
 
 Com ela ligada, aparece o menu **Avançado** e a rota `#avancado/<id>`.
 
+## Programas com vários módulos
+
+A partir da aula 50, um bloco `asm` ou um exercício pode ter vários arquivos. Cada um começa com uma linha-marcador:
+
+```asm
+;### MODULO PRINC.ASM
+        ...                 ; um módulo: montado à parte, com PUBLIC e EXTRN
+        END  inicio
+;### MODULO TELA.ASM
+        ...
+        END
+;### INCLUIR TELA.INC
+        ...                 ; um arquivo que o INCLUDE TELA.INC lê
+```
+
+O montador (`Asm.ligar`) monta cada módulo separado e faz o papel do LINK: junta segmentos de mesmo nome, resolve EXTRN e recusa nomes de outro módulo sem EXTRN. Só um módulo pode ter `END rótulo`. Um código sem marcadores é montado como sempre, então os blocos do curso principal não mudam. Nas variáveis do `setup` e da `espera`, um nome repetido em dois módulos é escrito `MODULO:NOME` (por exemplo `PRINC:contador`).
+
 ## Simulador
 
 Por enquanto as aulas desta trilha rodam no mesmo simulador do 8086. Quando entrar o simulador de 32 bits, ele virá num arquivo novo em `app/core/`, sem alterar o `cpu.js`, e as instruções do 386 só serão aceitas nesta trilha.

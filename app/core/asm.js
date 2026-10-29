@@ -352,6 +352,7 @@
     let model = null;
     let stackSize = null;
     let endLabel = null;
+    let endModulo = null;
     let explicitModel = false;
     let curSeg = null;
     let curProc = null;
@@ -364,10 +365,58 @@
     const errSt = (st, msg) => errors.push({ line: st.line, msg: comMacro(msg, st.macro) });
     const warn = (line, msg) => warnings.push({ line, msg });
 
+    // ---------------- Vários módulos (PUBLIC / EXTRN) ----------------
+    // Com opts.modulos, cada módulo tem os seus próprios nomes: um símbolo só é visto pelos
+    // outros módulos se for PUBLIC no módulo que o define e EXTRN no módulo que o usa.
+    // Os nomes locais ficam na tabela como "m<n>:NOME"; os públicos, com o nome puro.
+    const modulos = opts.modulos || null;
+    let modAtual = null;
+    if (modulos) {
+      for (const md of modulos) {
+        md.publicos = new Map(); md.externos = new Map();
+        for (let i = md.ini; i <= md.fim; i++) {
+          const t = stripComment(lines[i - 1] || '').trim();
+          const pm = /^PUBLIC\s+(.+)$/i.exec(t);
+          if (pm) for (const n of pm[1].split(',')) { const nm = n.trim().toUpperCase(); if (nm) md.publicos.set(nm, i); }
+          const em = /^EXTRN|^EXTERN/i.test(t) ? /^\S+\s+(.+)$/.exec(t) : null;
+          if (em) for (const n of em[1].split(',')) {
+            const [nm, ty] = n.split(':').map(x => x.trim().toUpperCase());
+            if (nm) md.externos.set(nm, { linha: i, tipo: ty || '' });
+          }
+        }
+      }
+    }
+    const chaveDe = (name) => (modAtual === null || modulos[modAtual].publicos.has(name.split('.')[0]) ? name : 'm' + modAtual + ':' + name);
+    const nomeModulo = (k) => modulos[k].nome;
+    function sget(name) {
+      if (modAtual === null || /^m\d+:/.test(name)) return symbols.get(name);
+      const local = symbols.get('m' + modAtual + ':' + name);
+      if (local) return local;
+      const g = symbols.get(name);
+      if (g && g.modDef !== undefined && g.modDef !== null && g.modDef !== modAtual && !modulos[modAtual].externos.has(name.split('.')[0])) {
+        throw new AsmError('"' + name + '" está no módulo ' + nomeModulo(g.modDef) + '. Para usá-lo aqui, declare EXTRN ' + name + ':' + (g.kind === 'proc' || g.kind === 'label' ? (g.type === 'far' ? 'FAR' : 'NEAR') : g.kind === 'var' ? ({ 1: 'BYTE', 2: 'WORD', 4: 'DWORD' }[g.type] || 'WORD') : 'ABS') + ' neste módulo.');
+      }
+      // quem usa só conhece o tipo declarado no EXTRN (como no MASM de verdade)
+      if (g && g.modDef !== modAtual && g.kind === 'var') {
+        const ex = modulos[modAtual].externos.get(name);
+        const tipo = ex && { BYTE: 1, WORD: 2, DWORD: 4 }[ex.tipo];
+        if (tipo && tipo !== g.type) return Object.assign(Object.create(g), { type: tipo });
+      }
+      return g;
+    }
+    // dica para um nome que existe em outro módulo, mas não é PUBLIC
+    function dicaModulo(name) {
+      if (modAtual === null) return '';
+      for (let k = 0; k < modulos.length; k++) if (k !== modAtual && symbols.has('m' + k + ':' + name)) return ' Ele existe no módulo ' + nomeModulo(k) + ', mas lá não foi declarado PUBLIC.';
+      return '';
+    }
+
     function getSeg(name, kind) {
       let s = segByName.get(name);
       if (!s) {
         s = { name, kind, stmts: [], size: 0, base: 0, org: 0 };
+        // cada comando lembra de que módulo veio (para achar os nomes certos depois)
+        if (modulos) s.stmts.push = function (...items) { for (const it of items) if (it && it.mod === undefined) it.mod = modAtual; return Array.prototype.push.apply(this, items); };
         segByName.set(name, s);
         segments.push(s);
       }
@@ -386,7 +435,7 @@
       return name;
     }
     function define(line, name, sym) {
-      const key = scopedName(name);
+      const key = chaveDe(scopedName(name));
       if (REG16.includes(name) || REG8.includes(name) || SREG.includes(name) || name === 'ST') {
         err(line, '"' + name + '" é um registrador e não pode ser usado como nome.'); return null;
       }
@@ -394,7 +443,7 @@
         err(line, '"' + name + '" é uma instrução e não pode ser usado como nome.'); return null;
       }
       if (symbols.has(key)) { err(line, 'Símbolo "' + name + '" definido mais de uma vez.'); return null; }
-      sym.name = key; sym.line = line;
+      sym.name = key; sym.line = line; sym.modDef = modAtual;
       symbols.set(key, sym);
       return sym;
     }
@@ -406,14 +455,14 @@
       if (parts.length < 2 || parts.slice(1).some(x => !x)) return null;
       let base = null, off = 0, type = 0;
       if (parts[0] !== '') {
-        const s = stmt ? lookup(parts[0], stmt) : symbols.get(parts[0]);
+        const s = stmt ? lookup(parts[0], stmt) : sget(parts[0]);
         if (!s) return null;
         if (s.kind === 'struc') base = null;
         else if (s.kind === 'var' || s.kind === 'label') base = s;
         else return null;
       }
       for (const f of parts.slice(1)) {
-        const fs = symbols.get(f);
+        const fs = sget(f);
         if (!fs || fs.kind !== 'field') throw new AsmError('"' + f + '" não é um campo de estrutura (em ' + name + ').');
         off += fs.offset; type = fs.type;
       }
@@ -423,7 +472,8 @@
     // ---------------- Macros, repetições e montagem condicional ----------------
     // As linhas passam por uma fila: a chamada de uma macro (ou um REPT/IRP/IRPC)
     // insere o corpo expandido logo depois dela, com o número da linha da chamada.
-    const queue = lines.map((t, i) => ({ t, n: i + 1, mac: null, exp: 0, depth: 0 }));
+    const modDaLinha = (n) => { if (!modulos) return null; const k = modulos.findIndex(md => n >= md.ini && n <= md.fim); return k < 0 ? -1 : k; };
+    const queue = lines.map((t, i) => ({ t, n: i + 1, mac: null, exp: 0, depth: 0, mod: modDaLinha(i + 1) })).filter(e => e.mod !== -1);
     const macros = new Map();    // NOME -> { params, locals, body, line }
     const conds = [];            // pilha de IF: { active, taken, parent, line }
     let collecting = null;       // corpo de MACRO/REPT/IRP/IRPC sendo lido
@@ -509,7 +559,7 @@
       if (expandedLines > 50000) throw new AsmError('A expansão de macros passou de 50.000 linhas: verifique REPT e chamadas recursivas.');
       const exp = ++expCount;
       expCondBase.set(exp, conds.length);
-      return bodyLines.map(t => ({ t: substParams(t, map), n: entry.n, mac: mac || entry.mac, exp, depth: entry.depth + 1 }));
+      return bodyLines.map(t => ({ t: substParams(t, map), n: entry.n, mac: mac || entry.mac, exp, depth: entry.depth + 1, mod: entry.mod }));
     }
     function condDirective(w1, rest, lineNo) {
       const parentActive = condActive();
@@ -518,7 +568,7 @@
         if (!parentActive) { conds.push({ active: false, taken: true, parent: false, line: lineNo }); return true; }
         let v;
         const args = () => splitArgs(rest);
-        const has = (n) => { n = n.toUpperCase(); return symbols.has(n) || macros.has(n) || textEqu.has(n) || constAlias.has(n); };
+        const has = (n) => { n = n.toUpperCase(); return symbols.has(n) || (modAtual !== null && symbols.has('m' + modAtual + ':' + n)) || macros.has(n) || textEqu.has(n) || constAlias.has(n); };
         switch (w1) {
           case 'IF': v = constExpr(rest).v !== 0; break;
           case 'IFE': v = constExpr(rest).v === 0; break;
@@ -608,6 +658,13 @@
       const entry = queue[qi];
       const lineNo = entry.n;
       curMac = entry.mac;
+      if (modulos && entry.mod !== modAtual) {
+        // começo de outro módulo: nada do anterior continua aberto
+        if (curProc) err(curProc.line, 'PROC "' + curProc.name + '" sem ENDP.');
+        if (conds.length) err(conds[conds.length - 1].line, 'IF sem ENDIF.');
+        conds.length = 0; curProc = null; procStack.length = 0; curSeg = null;
+        modAtual = entry.mod;
+      }
       let text = stripComment(entry.t).trim();
       if (!text) continue;
       try {
@@ -717,7 +774,7 @@
         if ((m = /^([A-Za-z_@$?][\w@$?]*)\s*=\s*(.+)$/.exec(text))) {
           const name = m[1].toUpperCase();
           const toks = tokenize(m[2]);
-          const s = symbols.get(name);
+          const s = symbols.get(chaveDe(name));
           if (!s) define(lineNo, name, { kind: 'const', toks, redefinable: true });
           else if (s.kind === 'const' && s.redefinable) {
             s.versions = (s.versions || 1) + 1;
@@ -760,7 +817,7 @@
         }
         // instância de estrutura
         {
-          const sA = symbols.get(w1), sB = symbols.get(w2);
+          const sA = sget(w1), sB = sget(w2);
           if (sB && sB.kind === 'struc') { strucInstance(lineNo, words[0].toUpperCase(), sB.struc, restAfter(2), ensureSeg(lineNo)); continue; }
           if (sA && sA.kind === 'struc') { strucInstance(lineNo, null, sA.struc, restAfter(1), ensureSeg(lineNo)); continue; }
         }
@@ -798,7 +855,7 @@
             const seg = curSeg;
             const stmt = { kind: 'equ', line: lineNo, seg, sym: name };
             if (seg) seg.stmts.push(stmt);
-            symbols.get(name).stmt = stmt;
+            symbols.get(chaveDe(name)).stmt = stmt;
           }
           continue;
         }
@@ -884,13 +941,43 @@
           continue;
         }
         switch (w1) {
-          case 'END': endLabel = w2 || null; qi = queue.length; continue;
-          case 'ASSUME': case 'TITLE': case 'PAGE': case 'SUBTTL': case 'NAME': case 'PUBLIC': case 'EXTRN': case 'DOSSEG': case '%OUT':
+          case 'END':
+            if (!modulos) { endLabel = w2 || null; qi = queue.length; continue; }
+            // vários módulos: END termina só este módulo; só um deles diz onde o programa começa
+            if (w2) {
+              if (endLabel) err(lineNo, 'Só um módulo pode dizer onde o programa começa (END ' + w2 + '): ' + nomeModulo(endModulo) + ' já tem END ' + endLabel + '. Nos outros, escreva só END.');
+              else { endLabel = w2; endModulo = modAtual; }
+            }
+            while (qi + 1 < queue.length && queue[qi + 1].mod === modAtual) qi++;
+            continue;
+          case 'PUBLIC': case 'EXTRN': case 'EXTERN':
+            // linhas vindas de INCLUDE não passaram pela pré-varredura do módulo
+            if (modulos && modAtual !== null && words[1]) {
+              const md = modulos[modAtual];
+              for (const n of restAfter(1).split(',')) {
+                const [nm, ty] = n.split(':').map(x => x.trim().toUpperCase());
+                if (!nm) continue;
+                if (w1 === 'PUBLIC') { if (!md.publicos.has(nm)) md.publicos.set(nm, lineNo); }
+                else if (!md.externos.has(nm)) md.externos.set(nm, { linha: lineNo, tipo: ty || '' });
+              }
+            }
+            continue;
+          case 'ASSUME': case 'TITLE': case 'PAGE': case 'SUBTTL': case 'NAME': case 'DOSSEG': case '%OUT':
             continue;
           case 'LOCALS': case 'JUMPS': case 'IDEAL': case 'MASM':
             if (w1 === 'JUMPS') warn(lineNo, 'JUMPS ignorado: aqui os saltos condicionais continuam curtos, como no 8086 real.');
             continue;
-          case 'INCLUDE': err(lineNo, 'INCLUDE não é suportado no simulador: cole o conteúdo do arquivo aqui.'); continue;
+          case 'INCLUDE': {
+            const nome = (words[1] || '').toUpperCase();
+            const inc = opts.incluir && opts.incluir[nome];
+            if (!opts.incluir) { err(lineNo, 'INCLUDE não é suportado no simulador: cole o conteúdo do arquivo aqui.'); continue; }
+            if (!inc) { err(lineNo, 'INCLUDE ' + (nome || '?') + ': não há uma parte ";### INCLUIR ' + (nome || 'NOME.INC') + '" neste bloco.'); continue; }
+            if (entry.depth >= 8) throw new AsmError('INCLUDE dentro de INCLUDE fundo demais: um arquivo está incluindo a si mesmo?');
+            const novas = [];
+            for (let n = inc.ini; n <= inc.fim; n++) novas.push({ t: lines[n - 1], n, mac: null, exp: 0, depth: entry.depth + 1, mod: entry.mod });
+            queue.splice(qi + 1, 0, ...novas);
+            continue;
+          }
           case 'ORG': {
             const seg = ensureSeg(lineNo);
             seg.stmts.push({ kind: 'org', line: lineNo, seg, toks: tokenize(restAfter(1)) });
@@ -918,12 +1005,31 @@
     if (collecting) err(collecting.line, collecting.kind + (collecting.name ? ' "' + collecting.name + '"' : '') + ' sem ENDM.');
     if (conds.length) err(conds[conds.length - 1].line, 'IF sem ENDIF.');
     if (curStruc) err(curStruc.line, 'STRUC "' + curStruc.name + '" sem ENDS.');
+    if (modulos) {
+      modulos.forEach((md, k) => {
+        for (const [nm, linha] of md.publicos) {
+          const s = symbols.get(nm);
+          if (!s || s.modDef !== k) err(linha, 'PUBLIC ' + nm + ': ' + nm + ' não foi definido no módulo ' + md.nome + '.');
+        }
+        for (const [nm, ex] of md.externos) {
+          const s = symbols.get(nm);
+          if (!s) err(ex.linha, 'EXTRN ' + nm + ': nenhum módulo declarou PUBLIC ' + nm + '.' + (modulos.some((o, j) => symbols.has('m' + j + ':' + nm)) ? ' O nome existe em outro módulo, mas falta o PUBLIC lá.' : ''));
+          else {
+            // o tipo do EXTRN é o que o módulo acredita; o LINK de verdade não conferia
+            const tipo = { BYTE: 1, WORD: 2, DWORD: 4, NEAR: 'near', FAR: 'far' }[ex.tipo];
+            const real = s.kind === 'var' ? s.type : s.kind === 'proc' || s.kind === 'label' ? s.type : undefined;
+            if (tipo !== undefined && real !== undefined && tipo !== real) warn(ex.linha, 'EXTRN ' + nm + ':' + ex.tipo + ', mas no módulo ' + nomeModulo(s.modDef) + ' ' + nm + ' é ' + ({ 1: 'BYTE', 2: 'WORD', 4: 'DWORD', near: 'NEAR', far: 'FAR' }[real] || real) + '. Ninguém confere isso: o montador usa o tipo do EXTRN, e o programa vai ler ou escrever o tamanho errado.');
+          }
+        }
+      });
+      modAtual = null;
+    }
 
     function constCtx() {
       return {
         here: 0,
         sym: (n) => {
-          const s = symbols.get(n);
+          const s = sget(n);
           if (s && s.kind === 'const') return evalExpr(s.toks, constCtx());
           if (s && s.kind === 'field') return { v: s.offset, reloc: false, unknown: false };
           if (s && s.kind === 'struc') return { v: s.size, reloc: false, unknown: false };
@@ -933,7 +1039,7 @@
         },
         segOf: () => { throw new AsmError('SEG não permitido aqui'); },
         attr: (op, n) => {
-          const s = symbols.get(n);
+          const s = sget(n);
           if (s && (s.kind === 'struc' || s.kind === 'field')) return { v: op === 'LENGTH' || op === 'LENGTHOF' ? 1 : (op === 'TYPE' ? s.type : s.size), reloc: false, unknown: false };
           if (s && s.kind === 'var' && s.struc) return { v: op === 'TYPE' ? s.type : op.startsWith('LENGTH') ? (s.stmt.count || 1) : s.type * (s.stmt.count || 1), reloc: false, unknown: false };
           throw new AsmError('Operador ' + op + ' não permitido aqui');
@@ -1006,8 +1112,8 @@
     };
 
     function lookup(name, stmt) {
-      if (name.startsWith('@@') && stmt.proc) return symbols.get(stmt.proc.name + '.' + name);
-      return symbols.get(name);
+      if (name.startsWith('@@') && stmt.proc) return sget(stmt.proc.name + '.' + name);
+      return sget(name);
     }
 
     function classifyOperand(raw, stmt) {
@@ -1156,6 +1262,7 @@
     for (const seg of segments) {
       for (const st of seg.stmts) {
         if (st.kind !== 'instr') continue;
+        if (modulos) modAtual = st.mod;
         try {
           st.ops = st.rawOps.map(r => classifyOperand(r, st));
         } catch (e) {
@@ -1208,16 +1315,18 @@
           return { v: dgroupBase, reloc: false, unknown: false, seg: true };
         }
         if (name === '@CODE') return { v: getSeg('_TEXT', 'code').base, reloc: false, unknown: false, seg: true };
-        if (pass > 0) throw new AsmError('Símbolo não definido: ' + name + '.');
+        if (pass > 0) throw new AsmError('Símbolo não definido: ' + name + '.' + dicaModulo(name));
         return { v: 0, reloc: true, unknown: true };
       }
       if (s.kind === 'const') {
         if (s.evaluating) throw new AsmError('Definição circular em ' + name);
         s.evaluating = true;
+        const modAntes = modAtual;
+        if (modulos && s.modDef !== undefined) modAtual = s.modDef;
         try {
           const ctx = exprCtx(s.stmt || stmt, s.stmt && s.stmt.offset !== undefined ? s.stmt.offset : here);
           return evalExpr(s.toks, ctx);
-        } finally { s.evaluating = false; }
+        } finally { s.evaluating = false; modAtual = modAntes; }
       }
       if (s.kind === 'segment') return { v: s.seg.base, reloc: false, unknown: false, seg: true };
       const off = s.stmt.offset;
@@ -1270,6 +1379,7 @@
       for (const seg of segments) {
         let off = seg.org || 0;
         for (const st of seg.stmts) {
+          if (modulos) modAtual = st.mod;
           if (st.offset !== off) { if (st.offset !== undefined) changed = true; st.offset = off; }
           let size = 0;
           st.err = null;
@@ -1924,6 +2034,7 @@
       for (const seg of segments) {
         for (const st of seg.stmts) {
           const physBase = seg.base * 16;
+          if (modulos) modAtual = st.mod;
           try {
             if (st.err) throw new AsmError(st.err);
             if (st.kind === 'data') {
@@ -1958,7 +2069,9 @@
     const codeSeg = segByName.get('_TEXT') || segments.find(s => s.kind === 'code') || segments[0];
     if (!errors.length) {
       if (endLabel) {
-        const s = symbols.get(endLabel);
+        if (modulos) modAtual = endModulo;
+        const s = sget(endLabel);
+        if (modulos) modAtual = null;
         if (!s || !s.stmt) err(lines.length, 'END ' + endLabel + ': rótulo de início não encontrado.');
         else entry = { seg: s.seg.base, off: s.stmt.offset };
       } else if (codeSeg) {
@@ -1988,6 +2101,7 @@
 
     // tabela de símbolos pública
     const symTable = {};
+    modAtual = null;
     for (const [k, s] of symbols) {
       if (s.hidden) continue;
       if (s.kind === 'field' || s.kind === 'struc') { symTable[k] = { kind: s.kind, value: s.kind === 'field' ? s.offset : s.size }; continue; }
@@ -2001,6 +2115,21 @@
           phys: (s.seg.base * 16 + s.stmt.offset) & 0xFFFFF, count: s.stmt.count || 1, line: s.line
         };
       } catch (e) { /* ignora */ }
+    }
+
+    // vários módulos: os nomes locais aparecem como MODULO:NOME (e só NOME quando não há outro igual)
+    if (modulos) {
+      const contagem = {};
+      for (const k of Object.keys(symTable)) {
+        const m = /^m(\d+):(.*)$/.exec(k);
+        if (!m) { contagem[k] = (contagem[k] || 0) + 1; continue; }
+        const nome = m[2], base = modulos[+m[1]].nome.split('.')[0];
+        symTable[base + ':' + nome] = Object.assign(symTable[k], { modulo: modulos[+m[1]].nome });
+        delete symTable[k];
+        contagem[nome] = (contagem[nome] || 0) + 1;
+        symTable['\u0000' + nome] = symTable[base + ':' + nome];
+      }
+      for (const k of Object.keys(symTable)) if (k[0] === '\u0000') { const n = k.slice(1); if (contagem[n] === 1 && !symTable[n]) symTable[n] = symTable[k]; delete symTable[k]; }
     }
 
     const minAddr = segments.length ? Math.min(...segments.map(s => s.base)) : PSP_SEG;
@@ -2019,8 +2148,37 @@
       symbols: symTable,
       codeEnd: codeSeg ? codeSeg.base * 16 + codeSeg.size : 0,
       loadStart: minAddr * 16, loadEnd: maxEnd,
-      lines
+      lines,
+      modulos: modulos ? modulos.map(md => ({ nome: md.nome, linha: md.ini })) : undefined
     };
+  }
+
+  // ------------------------------------------------------------------
+  // Ligador: um bloco com partes ";### MODULO NOME.ASM" vira um programa só,
+  // como o LINK fazia com vários .OBJ. Partes ";### INCLUIR NOME.INC" são
+  // arquivos para INCLUDE. O texto antes do primeiro marcador (se houver)
+  // é o primeiro módulo.
+  // ------------------------------------------------------------------
+  const RE_MODULO = /^\s*;###\s*(MODULO|INCLUIR)\s+(\S+)/i;
+  function temModulos(source) {
+    return String(source).split('\n').some(l => RE_MODULO.test(l));
+  }
+  function ligar(source, opts) {
+    const linhas = String(source).replace(/\r\n?/g, '\n').split('\n');
+    const marcas = [];
+    linhas.forEach((l, i) => { const m = RE_MODULO.exec(l); if (m) marcas.push({ tipo: m[1].toUpperCase(), nome: m[2].toUpperCase(), linha: i + 1 }); });
+    const modulos = [], incluir = {};
+    const antes = linhas.slice(0, marcas[0].linha - 1);
+    if (antes.some(l => stripComment(l).trim())) modulos.push({ nome: 'PRINCIPAL.ASM', ini: 1, fim: marcas[0].linha - 1 });
+    marcas.forEach((mk, k) => {
+      const fim = k + 1 < marcas.length ? marcas[k + 1].linha - 1 : linhas.length;
+      if (mk.tipo === 'MODULO') modulos.push({ nome: mk.nome, ini: mk.linha + 1, fim });
+      else incluir[mk.nome] = { ini: mk.linha + 1, fim };
+    });
+    if (!modulos.length) {
+      return { ok: false, errors: [{ line: marcas[0].linha, msg: 'O bloco só tem arquivos para INCLUDE: falta pelo menos um ";### MODULO NOME.ASM".' }], warnings: [], instrs: [], image: [], symbols: {}, segments: [], listing: [], lines: linhas };
+    }
+    return assemble(linhas.join('\n'), Object.assign({}, opts, { modulos, incluir }));
   }
 
   // Conversão Unicode -> CP437 (para strings em DB)
@@ -2039,5 +2197,5 @@
     return code < 256 ? code : 0x3F;
   }
 
-  return { assemble, CP437, cp437, REG16, REG8, SREG, hex, parseNumber, POS_8086, KNOWN_MNEMONICS, Real };
+  return { assemble, ligar, temModulos, CP437, cp437, REG16, REG8, SREG, hex, parseNumber, POS_8086, KNOWN_MNEMONICS, Real };
 });

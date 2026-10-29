@@ -2360,6 +2360,7 @@
   // monta cada parte e junta tudo num disquete MINIFS.
   function montarPrograma(source, opts) {
     opts = opts || {};
+    if (Asm.temModulos && Asm.temModulos(source)) return Asm.ligar(source);   // vários módulos (PUBLIC/EXTRN)
     const div = partesDoFonte(source);
     if (!div) return Asm.assemble(source);
     const { linhas, partes } = div;

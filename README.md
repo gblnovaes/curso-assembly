@@ -74,6 +74,8 @@ Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA
 
 A continuação do curso, do módulo 16 em diante (386, modo protegido e sistemas operacionais), fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Enquanto está em construção ela fica escondida: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
 
+Já pronto: módulo 16, **Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
+
 ## Como executar
 
 ### Aplicativo de desktop (Electron)

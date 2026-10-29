@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "conteudo": "node tools/build-conteudo.js",
-    "test": "node tests/core.test.js && node tests/conteudo.test.js && node tests/avancado.test.js",
+    "test": "node tests/core.test.js && node tests/conteudo.test.js && node tests/avancado.test.js && node tests/nasm.test.js && node tests/cpu386.test.js",
     "web": "npx http-server app -p 8086 -c-1"
   },
   "keywords": [

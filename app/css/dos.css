@@ -391,6 +391,8 @@ canvas.tela:focus { box-shadow: 0 0 0 2px var(--cE); }
 .mini-dbg .regs { white-space: normal; }
 .regs .rc { display: inline-block; white-space: nowrap; margin-right: 1.5ch; }
 .mini-dbg .linhas > div { min-width: 0; }
+.m386 canvas.tela { width: 100%; max-width: 720px; height: auto; margin: .5em 0; }
+.m386 .lista-mono { overflow-x: auto; }
 .mini-dbg canvas.mini-gfx { width: 100%; height: auto; aspect-ratio: 4 / 3; margin-top: .4em; border: 1px solid var(--c8); background: #000; }
 .lab-barra input.param { background: #000; color: var(--cE); border: 1px solid var(--c8); width: 14ch; margin: 0 1ch; font-family: var(--font); font-size: inherit; }
 .disco .arq a { color: var(--cE); }

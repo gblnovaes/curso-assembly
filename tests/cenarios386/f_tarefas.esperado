@@ -1,0 +1,10 @@
+[8B 89 ] A: jmp
+B: EAX=B0B0B0B0 [89 8B ] 00000046 0000 
+A: voltou, EAX=AAAA0001 [8B 89 ] 00000019 
+A: call
+A: depois do call, EAX=AAAA0002 [8B 89 ] 
+A: int 40h
+B: EAX=B0B00002 [8B 8B ] 00004046 0028 
+A: depois da int
+[8B 89 ] 00000046 
+fim~~

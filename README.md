@@ -72,7 +72,7 @@ Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA
 
 ### Trilha avançada (em construção)
 
-A continuação do curso, do módulo 16 em diante (386, modo protegido e sistemas operacionais), fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Enquanto está em construção ela fica escondida: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
+A continuação do curso, do módulo 16 em diante (386, modo protegido e sistemas operacionais), fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os programas são escritos na sintaxe do NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. Enquanto está em construção ela fica escondida: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
 
 Já pronto: módulo 16, **Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
 
@@ -120,6 +120,8 @@ app/
   livro.js            gerado a partir de livro-bios/ (não edite à mão)
   core/asm.js         montador 8086/8087 (MASM/TASM)
   core/cpu.js         simulador do 8086, do 8087 e do PC
+  core/nasm.js        montador NASM da trilha avançada (386)
+  core/cpu386.js      máquina 386 da trilha avançada: CPU, BIOS, DOS mínimo, PIC, PIT, teclado, disco
   core/fonte8x8.js    fonte 8x8 do modo gráfico (domínio público)
   ui/                 interface: aulas, laboratório, depurador, widgets, referência
   css/dos.css         temas e visual de modo texto
@@ -130,8 +132,8 @@ conteudo/
   LEIA-ME.md          o formato das aulas
 conteudo-386/         a trilha avançada (mesmo formato, módulos 16 em diante)
 livro-bios/           o Livro da BIOS (capítulos e apêndices em Markdown)
-tests/                testes do núcleo e do conteúdo
-tools/                build do conteúdo
+tests/                testes do núcleo, do conteúdo e da máquina 386 (cenarios386/: conferidos com o Bochs)
+tools/                build do conteúdo e comparações da máquina 386 com o QEMU e o Bochs
 main.js               janela do Electron
 ```
 

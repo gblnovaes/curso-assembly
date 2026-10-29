@@ -419,7 +419,8 @@
           this.picM.irr |= 1;
           this.proxTick = this.passos + this.periodoTimer();
         }
-        if (this.kbd.saida === null && this.kbd.fila.length) { this.kbd.saida = this.kbd.fila.shift(); this.picM.irr |= 2; }
+        if (this.kbd.saida === null && this.kbd.fila.length) this.kbd.saida = this.kbd.fila.shift();
+        if (this.kbd.saida !== null) this.picM.irr |= 2;
         // interrupção externa
         if (this.flag(IF) && !this.inibirInt) {
           const v = this.aceitarIRQ();
@@ -471,11 +472,14 @@
       if (this.excecaoEmEntrega >= 2 || (this.excecaoEmEntrega === 1 && e.vetor === 8)) {
         this.excecaoEmEntrega = 0;
         this.status = 'erro';
-        this.motivo = 'Falha tripla: uma exceção aconteceu enquanto o processador tentava entregar a falha dupla. Num PC de verdade, a máquina reinicia. ' + this.dicaFalhaTripla(e);
+        const p = this.primeiraExcecao;
+        this.motivo = 'Falha tripla: uma exceção aconteceu enquanto o processador tentava entregar a falha dupla. Num PC de verdade, a máquina reinicia. ' +
+          (p ? 'Tudo começou com ' + p + '. ' : '') + this.dicaFalhaTripla(e);
         this.nota('erro', this.motivo);
         return;
       }
       const nivel = this.excecaoEmEntrega;
+      if (nivel === 0) this.primeiraExcecao = sig + (temCodigo ? '(' + hex(e.codigo, 4) + ')' : '') + ' em ' + local + (e.motivo ? ': ' + e.motivo : '');
       this.excecaoEmEntrega++;
       this.restaurar();
       try {
@@ -489,6 +493,7 @@
     }
     dicaFalhaTripla() {
       if (!this.pe) return '';
+      if (this.idtr.base === 0 && this.idtr.limit === 0x3FF) return 'A IDTR ainda aponta para a tabela de interrupções do modo real (base 0, limite 3FFh): no modo protegido, a CPU lê ali descritores de 8 bytes que não existem. Sem uma IDT carregada com LIDT, qualquer exceção vira falha tripla.';
       if (this.idtr.limit < 8 * 14) return 'A IDT tem limite ' + hex(this.idtr.limit, 4) + ': ela não tem entradas para as exceções. Carregou a IDT com LIDT?';
       return 'Confira a IDT (entradas presentes, seletor de código certo) e a pilha do anel 0.';
     }

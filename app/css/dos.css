@@ -451,6 +451,8 @@ canvas.tela:focus { box-shadow: 0 0 0 2px var(--cE); }
 .dlg select { background: var(--c1); color: var(--cF); border: 0; max-width: 100%; min-width: 0; }
 .dlg label:has(select) { flex-wrap: wrap; }
 .dlg pre { font-family: var(--font); }
+/* código dentro de diálogos (ex.: Solução): fundo de código, senão o texto cinza some no fundo cinza do diálogo */
+.dlg pre.asm { background: var(--code-bg); border: 2px solid var(--code-frame); }
 :root[data-tema="fosforo"] .dlg.win, :root[data-tema="ambar"] .dlg.win { --win-bg: var(--c1); --win-fg: var(--text); --win-title: var(--text); }
 
 /* -------- boot -------- */

@@ -72,11 +72,28 @@ Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA
 
 ### Trilha avançada (em construção)
 
-A continuação do curso, do módulo 16 em diante (386, modo protegido e sistemas operacionais), fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os programas são escritos na sintaxe do NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. Enquanto está em construção ela fica escondida: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
+A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os exemplos são escritos em NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. A trilha fica escondida quando não está ativa: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
 
-Já pronto: módulo 16, **Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
+**Já prontos** (módulos 16 a 24, aulas 48 a 79):
 
-Também prontos: módulo 17, **O 186 e o 286** (aulas 54 a 56: as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA), e módulo 18, **O 386 em modo real** (aulas 57 a 60: registradores de 32 bits, endereços com escala, FS e GS, as instruções novas e a detecção da CPU).
+- **Módulo 16 — Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
+- **Módulo 17 — O 186 e o 286** (aulas 54 a 56: as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA).
+- **Módulo 18 — O 386 em modo real** (aulas 57 a 60: registradores de 32 bits, endereços com escala, FS e GS, as instruções novas e a detecção da CPU).
+- **Módulo 19 — Entrando no modo protegido** (aulas 61 a 64: GDT, descritores, seletores, CR0 e o modelo plano).
+- **Módulo 20 — Interrupções e exceções em 32 bits** (aulas 65 a 67: IDT, as exceções 0 a 31, o 8259 remapeado e a falha tripla).
+- **Módulo 21 — Paginação** (aulas 68 a 70: CR3, diretório e tabelas de páginas, #PF e o kernel na metade alta).
+- **Módulo 22 — Anéis e chamadas de sistema** (aulas 71 a 73: CPL, DPL e RPL, a TSS, IOPL e o modo usuário).
+- **Módulo 23 — Multitarefa** (aulas 74 a 76: troca de tarefas por hardware e por software, escalonador e processos).
+- **Módulo 24 — O modo virtual 8086** (aulas 77 a 79: um monitor v86 que roda programas do DOS dentro do seu kernel).
+
+**Planejados** (módulos 25 a 28):
+
+- **Módulo 25 — C para quem já sabe Assembly** (o Assembly que o compilador gera, cdecl, GCC cruzado e o ligador).
+- **Módulo 26 — Um kernel de 32 bits estilo Unix** (ELF, drivers, FAT12, fork e exec, shell e pipes).
+- **Módulo 27 — Desenho de sistemas operacionais** (DOS, Unix, Minix, Linux e NT: monolítico contra microkernel).
+- **Módulo 28 — Depois do 386** (CPUID, APIC, modo de 64 bits e UEFI).
+
+Em resumo: **32 aulas** prontas na trilha avançada (aula48 a aula79, módulos 16 a 24) e os módulos 25 a 28 em planejamento.
 
 ## Como executar
 

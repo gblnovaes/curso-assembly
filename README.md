@@ -23,6 +23,8 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 | **Livro da BIOS** dentro do aplicativo | **Invasores do espaço** (aula 35), rodando no 8086 simulado |
 | ![MINIOS](docs/screenshots/minios.png) | ![Programa de pintura](docs/screenshots/pinta.png) |
 | **MINIOS** (aula 44): o `DIR` do disquete depois do boot | **PINTA.ASM** (aula 47): pintura no modo 13h com o mouse pela `INT 33h` |
+| ![Visual moderno: aula](docs/screenshots/moderno-aula.png) | ![Visual moderno: laboratório](docs/screenshots/moderno-laboratorio.png) |
+| **Visual moderno** (opcional, estilo VS Code): uma aula | **Visual moderno**: o laboratório com o depurador |
 
 ## O que tem dentro
 
@@ -38,6 +40,7 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 - **Livro da BIOS** (F5 ou menu Livro BIOS): os 22 capítulos e 4 apêndices de `livro-bios/` dentro do aplicativo, com busca no texto inteiro (Ctrl+F), sumário por partes, programas executáveis ali mesmo e links nos dois sentidos entre as aulas e os capítulos.
 - **Progresso salvo** no computador do aluno, com exportação e importação.
 - **Visual de época**: telas de texto com bordas duplas, temas Borland azul, preto, fósforo verde e âmbar, efeito CRT opcional, fonte VT323 e tela de boot da BIOS.
+- **Visual moderno opcional**: em **Opções → Visual**, o tema "Moderno (estilo VS Code)" troca as janelas de modo texto por painéis escuros com barra lateral, abas, barra de status azul, fonte proporcional na interface e monoespaçada no código, com realce de sintaxe no estilo do editor. A tela do PC simulado, a tela de boot e o logotipo continuam em modo texto. O visual DOS continua o padrão, e a escolha fica salva.
 
 ## O montador e o simulador
 
@@ -141,6 +144,7 @@ app/
   core/fonte8x8.js    fonte 8x8 do modo gráfico (domínio público)
   ui/                 interface: aulas, laboratório, depurador, widgets, referência
   css/dos.css         temas e visual de modo texto
+  css/moderno.css     visual moderno opcional (estilo VS Code)
   fonts/              fonte VT323 (licença OFL)
 conteudo/
   aulaNN-*.md         as aulas, em Markdown com blocos especiais

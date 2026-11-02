@@ -15,11 +15,22 @@
   function aplicarOpcoes() {
     const o = store.get('opcoes', {});
     const r = document.documentElement;
-    if (o.tema && o.tema !== 'borland') r.dataset.tema = o.tema; else delete r.dataset.tema;
-    r.dataset.fonte = o.fonte || 'vt323';
     r.dataset.crt = o.crt ? 'sim' : 'nao';
-    r.style.setProperty('--fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.72) : 15) + 'px' : (o.tamanho || 21) + 'px');
-    r.style.setProperty('--code-fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.68) : 14) + 'px' : ((o.tamanho || 21) - 1) + 'px');
+    if (o.visual === 'moderno') {
+      // visual moderno (estilo VS Code, css/moderno.css): ignora as cores e a fonte do visual DOS
+      r.dataset.visual = 'moderno';
+      delete r.dataset.tema;
+      r.dataset.fonte = 'moderno';
+      const t = Math.round((o.tamanho || 21) * 0.67);
+      r.style.setProperty('--fs', t + 'px');
+      r.style.setProperty('--code-fs', t + 'px');
+    } else {
+      delete r.dataset.visual;
+      if (o.tema && o.tema !== 'borland') r.dataset.tema = o.tema; else delete r.dataset.tema;
+      r.dataset.fonte = o.fonte || 'vt323';
+      r.style.setProperty('--fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.72) : 15) + 'px' : (o.tamanho || 21) + 'px');
+      r.style.setProperty('--code-fs', o.fonte === 'sistema' ? (o.tamanho ? Math.round(o.tamanho * 0.68) : 14) + 'px' : ((o.tamanho || 21) - 1) + 'px');
+    }
     const mi = document.querySelector('#menubar .mi[data-avancado]');
     if (mi) mi.hidden = !window.Avancado.ativa();
   }
@@ -219,14 +230,23 @@
   }
 
   function opcoes() {
-    const o = Object.assign({ tema: 'borland', fonte: 'vt323', tamanho: 21, crt: false, som: true, boot: true }, store.get('opcoes', {}));
+    const o = Object.assign({ visual: 'dos', tema: 'borland', fonte: 'vt323', tamanho: 21, crt: false, som: true, boot: true }, store.get('opcoes', {}));
     const sel = (nome, ops) => { const s = h('select', null, ...ops.map(([v, t]) => h('option', { value: v, selected: String(o[nome]) === String(v) }, t))); s.addEventListener('change', () => { o[nome] = s.value; store.set('opcoes', o); aplicarOpcoes(); }); return s; };
     const chk = (nome, txt) => { const c = h('input', { type: 'checkbox' }); c.checked = !!o[nome]; c.addEventListener('change', () => { o[nome] = c.checked; store.set('opcoes', o); aplicarOpcoes(); }); return h('label', null, c, txt); };
     const tam = sel('tamanho', [[17, 'Pequeno'], [19, 'Médio'], [21, 'Normal'], [24, 'Grande'], [27, 'Enorme']]);
     tam.addEventListener('change', () => { o.tamanho = +tam.value; store.set('opcoes', o); aplicarOpcoes(); });
+    const visual = sel('visual', [['dos', 'DOS anos 90 (Turbo Vision)'], ['moderno', 'Moderno (estilo VS Code)']]);
+    const cores = sel('tema', [['borland', 'Azul Borland (Turbo Pascal / Turbo C)'], ['preto', 'Preto VGA'], ['fosforo', 'Monitor de fósforo verde'], ['ambar', 'Monitor âmbar']]);
+    const fonte = sel('fonte', [['vt323', 'Terminal retrô (VT323)'], ['sistema', 'Monoespaçada do sistema (leitura longa)']]);
+    const nota = h('p', { style: { margin: '.1em 0 .5em', opacity: .8 } }, 'No visual moderno, as cores e a fonte seguem o editor; a tela do PC simulado continua em modo texto.');
+    const atualizar = () => { const m = o.visual === 'moderno'; cores.disabled = m; fonte.disabled = m; nota.hidden = !m; };
+    visual.addEventListener('change', atualizar);
+    atualizar();
     App.dialogo('Opções', [
-      h('label', null, 'Cores:', sel('tema', [['borland', 'Azul Borland (Turbo Pascal / Turbo C)'], ['preto', 'Preto VGA'], ['fosforo', 'Monitor de fósforo verde'], ['ambar', 'Monitor âmbar']])),
-      h('label', null, 'Fonte:', sel('fonte', [['vt323', 'Terminal retrô (VT323)'], ['sistema', 'Monoespaçada do sistema (leitura longa)']])),
+      h('label', null, 'Visual:', visual),
+      nota,
+      h('label', null, 'Cores:', cores),
+      h('label', null, 'Fonte:', fonte),
       h('label', null, 'Tamanho do texto:', tam),
       chk('crt', ' Efeito de tubo CRT (linhas de varredura)'),
       chk('som', ' Som do alto-falante do PC'),
@@ -268,7 +288,7 @@
       ...window.Livro.capitulos.map(c => [window.Livro.rotulo(c), () => { location.hash = '#livro/' + c.id; }, c.id === 'sumario' ? 'F5' : null])]],
     ['~R~eferência', [['Livro da BIOS', () => { location.hash = '#livro'; }, 'F5'], null, ['Instruções', () => { location.hash = '#ref/instr'; }, 'F6'], ['INT 21h (DOS)', () => { location.hash = '#ref/int21'; }], ['BIOS', () => { location.hash = '#ref/bios'; }], ['Endereçamento e ciclos', () => { location.hash = '#ref/ciclos'; }], ['Tabela ASCII', () => { location.hash = '#ref/ascii'; }], ['Atalhos de teclado', () => { location.hash = '#ref/atalhos'; }]]],
     ['~P~rogresso', [['Ver progresso', () => { location.hash = '#progresso'; }]]],
-    ['~O~pções', [['Cores, fonte e som…', opcoes]]],
+    ['~O~pções', [['Visual, cores, fonte e som…', opcoes]]],
     ['A~j~uda', [['Ajuda', ajuda, 'F1'], ['Sobre…', sobre]]]
   ];
   let menuAberto = null;

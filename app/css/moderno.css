@@ -1,0 +1,360 @@
+/* Curso Assembly 8086 — visual moderno, inspirado no VS Code (tema escuro).
+   Opcional: só vale com <html data-visual="moderno"> (Opções → Visual). O visual DOS (dos.css) continua o padrão.
+   A tela do PC simulado, a tela de boot e o logotipo em ASCII continuam em modo texto: a essência do curso fica. */
+
+:root[data-visual="moderno"] {
+  --ui-font: 'Segoe UI', system-ui, -apple-system, 'Ubuntu', 'Noto Sans', 'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font: 'Cascadia Code', 'Cascadia Mono', 'Consolas', 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Menlo', 'DejaVu Sans Mono', 'Courier New', monospace;
+  --font-tela: 'VT323', 'Consolas', 'Lucida Console', 'Courier New', monospace;
+  --lh: 1.55;
+  --code-lh: 1.5em;
+
+  /* superfícies (VS Code Dark Modern) */
+  --m-bg: #1f1f1f;        /* editor */
+  --m-side: #181818;      /* barra lateral, título, painéis */
+  --m-borda: #2b2b2b;
+  --m-borda2: #3c3c3c;
+  --m-hover: #2a2d2e;
+  --m-sel: #04395e;
+  --m-sel2: #37373d;
+  --m-input: #313131;
+  --m-azul: #0078d4;
+  --m-status: #007acc;
+  --m-txt: #cccccc;
+  --m-fraco: #9d9d9d;
+  --m-mudou: #5c4a00;
+
+  /* paleta EGA reinterpretada para os detalhes que ainda usam as 16 cores */
+  --c0: #1f1f1f; --c1: #252526; --c2: #16825d; --c3: #3a96dd; --c4: #c42b1c; --c5: #c586c0; --c6: #ce9178; --c7: #9d9d9d;
+  --c8: #6e7681; --c9: #3794ff; --cA: #89d185; --cB: #4fc1ff; --cC: #f48771; --cD: #c586c0; --cE: #dcdcaa; --cF: #ffffff;
+
+  --desk-a: var(--m-bg); --desk-b: var(--m-bg);
+  --menu-bg: var(--m-side); --menu-fg: var(--m-txt); --menu-hot: var(--m-txt); --menu-sel-bg: var(--m-azul); --menu-sel-fg: #fff;
+  --win-bg: var(--m-bg); --win-fg: var(--m-txt); --win-frame: var(--m-borda); --win-title: var(--m-txt);
+  --text: var(--m-txt); --head: #e7e7e7; --head2: #4fc1ff; --link: #3794ff; --em: #ffffff;
+  --code-bg: #1e1e1e; --code-fg: #d4d4d4; --code-frame: var(--m-borda);
+  /* realce de sintaxe Dark+ */
+  --ins: #569cd6; --reg: #9cdcfe; --num: #b5cea8; --str: #ce9178; --com: #6a9955; --dir: #c586c0; --lbl: #dcdcaa;
+  --dlg-bg: #252526; --dlg-fg: var(--m-txt); --dlg-frame: #454545;
+  --btn-bg: var(--m-azul); --btn-fg: #fff; --btn-hot: #fff;
+  --ok: #89d185; --bad: #f48771; --warn: #cca700;
+  --sel-bg: var(--m-sel); --sel-fg: #fff;
+  --cur-bg: rgba(255, 255, 0, .2); --bp-bg: rgba(229, 20, 0, .25);
+  --shadow: rgba(0, 0, 0, .36);
+}
+
+:root[data-visual="moderno"] body {
+  font-family: var(--ui-font);
+  -webkit-font-smoothing: antialiased;
+  font-smooth: auto;
+  background: var(--m-bg);
+}
+:root[data-visual="moderno"] ::selection { background: #264f78; color: inherit; }
+
+/* barras de rolagem finas, como no editor */
+:root[data-visual="moderno"] ::-webkit-scrollbar { width: 12px; height: 12px; }
+:root[data-visual="moderno"] ::-webkit-scrollbar-track { background: transparent; background-image: none; }
+:root[data-visual="moderno"] ::-webkit-scrollbar-thumb { background: rgba(121, 121, 121, .4); border: 3px solid transparent; background-clip: padding-box; border-radius: 6px; }
+:root[data-visual="moderno"] ::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 100, 100, .7); }
+:root[data-visual="moderno"] ::-webkit-scrollbar-corner { background: transparent; }
+
+/* -------- barra de título e menus -------- */
+:root[data-visual="moderno"] #menubar {
+  height: 34px; padding: 0 6px; align-items: center; font-size: 13px;
+  border-bottom: 1px solid var(--m-borda);
+}
+:root[data-visual="moderno"] #menubar .mi { padding: 0 8px; height: 24px; border-radius: 5px; }
+:root[data-visual="moderno"] #menubar .mi:hover, :root[data-visual="moderno"] #menubar .mi.aberto { background: rgba(255, 255, 255, .1); color: #fff; }
+:root[data-visual="moderno"] #menubar .mi .hk, :root[data-visual="moderno"] .dd .hk, :root[data-visual="moderno"] #menubar .mi.aberto .hk { color: inherit; }
+:root[data-visual="moderno"] #menubar .mi:first-child { color: var(--m-azul); font-size: 16px; font-weight: 700; }
+:root[data-visual="moderno"] #menubar .relogio { color: var(--m-fraco); font-variant-numeric: tabular-nums; }
+:root[data-visual="moderno"] .dd {
+  background: var(--m-bg); color: var(--m-txt); border: 1px solid #454545; outline: 0; border-radius: 6px;
+  margin: 2px 0 0; padding: 4px; box-shadow: 0 4px 16px var(--shadow); font-size: 13px; line-height: 1.75;
+}
+:root[data-visual="moderno"] .dd .op { padding: 0 20px 0 22px; border-radius: 4px; }
+:root[data-visual="moderno"] .dd .op:hover, :root[data-visual="moderno"] .dd .op.sel { background: var(--m-azul); color: #fff; }
+:root[data-visual="moderno"] .dd .sep { border-top: 1px solid #454545; margin: 4px 10px; }
+:root[data-visual="moderno"] .dd .atalho { color: var(--m-fraco); opacity: 1; }
+:root[data-visual="moderno"] .dd .op:hover .atalho { color: #fff; }
+
+/* -------- barra de status (azul do editor) -------- */
+:root[data-visual="moderno"] #status { background: var(--m-status); color: #fff; height: 24px; font-size: 12px; padding: 0 4px; }
+:root[data-visual="moderno"] #status .k { padding: 0 8px; height: 100%; display: flex; align-items: center; gap: 4px; }
+:root[data-visual="moderno"] #status .k b { color: #fff; font-weight: 600; }
+:root[data-visual="moderno"] #status .k:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+:root[data-visual="moderno"] #status .k:hover b { color: #fff; }
+:root[data-visual="moderno"] #status .msg { border-left: 0; opacity: .9; }
+
+/* -------- área principal: painéis encostados, separados por linhas finas -------- */
+:root[data-visual="moderno"] #main { background: var(--m-borda); background-image: none; }
+:root[data-visual="moderno"] .view { padding: 0; gap: 1px; }
+:root[data-visual="moderno"] .win { border: 0; box-shadow: none; border-radius: 0; }
+:root[data-visual="moderno"] .win > .titulo {
+  position: static; flex: none; display: flex; align-items: stretch; text-align: left; pointer-events: auto;
+  height: 35px; background: var(--m-side); border-bottom: 1px solid var(--m-borda); font-size: 13px; overflow: hidden;
+}
+/* o título vira uma aba de editor aberta */
+:root[data-visual="moderno"] .win > .titulo span {
+  background: var(--win-bg); color: #fff; padding: 0 14px; display: flex; align-items: center; gap: 6px;
+  border-top: 1px solid var(--m-azul); border-right: 1px solid var(--m-borda); margin-bottom: -1px; white-space: nowrap;
+}
+:root[data-visual="moderno"] .win > .titulo span:last-child::before { content: '\25C6'; color: #519aba; font-size: 10px; }
+:root[data-visual="moderno"] .win > .titulo .fechar { position: static; order: 2; border: 0; color: var(--m-fraco); background: none; }
+:root[data-visual="moderno"] .win > .corpo { padding: 12px 16px; }
+:root[data-visual="moderno"] .win.alt, :root[data-visual="moderno"] .win.cinza { --win-bg: var(--m-bg); --win-fg: var(--m-txt); --win-frame: var(--m-borda); --win-title: var(--m-txt); }
+
+/* índices = barra lateral do explorador */
+:root[data-visual="moderno"] .win.indice { --win-bg: var(--m-side); }
+:root[data-visual="moderno"] .win.indice > .titulo span {
+  background: none; border: 0; color: var(--m-txt); text-transform: uppercase; font-size: 11px; letter-spacing: .04em; padding: 0 20px;
+}
+:root[data-visual="moderno"] .win.indice > .titulo span::before { content: none; }
+:root[data-visual="moderno"] #v-aulas .indice, :root[data-visual="moderno"] #v-avancado .indice { width: 300px; }
+:root[data-visual="moderno"] #v-livro .indice { width: 340px; }
+:root[data-visual="moderno"] .indice .corpo { padding: 4px 0 12px; font-size: 13px; line-height: 22px; }
+:root[data-visual="moderno"] .mod { margin-bottom: 6px; }
+:root[data-visual="moderno"] .mod > .mt { color: var(--m-txt); font-weight: 600; padding: 2px 12px; }
+:root[data-visual="moderno"] .mod > .mt .n { color: var(--m-fraco); font-weight: 400; }
+:root[data-visual="moderno"] .mod > .mt:hover { background: var(--m-hover); }
+:root[data-visual="moderno"] .mod.futuro > .mt { color: var(--m-fraco); }
+:root[data-visual="moderno"] .aula-it { padding: 0 12px 0 24px; color: var(--m-txt); border: 1px solid transparent; }
+:root[data-visual="moderno"] .aula-it:hover { background: var(--m-hover); color: var(--m-txt); }
+:root[data-visual="moderno"] .aula-it.atual { background: var(--m-sel); color: #fff; border-color: var(--m-azul); }
+:root[data-visual="moderno"] .aula-it .chk { color: var(--ok); font-family: var(--font); font-size: .9em; }
+:root[data-visual="moderno"] .aula-it.atual .chk { color: var(--ok); }
+:root[data-visual="moderno"] .mod .em-breve { color: var(--m-fraco); padding: 0 24px; }
+:root[data-visual="moderno"] .indice .em-breve { color: var(--m-fraco); padding: 4px 12px 8px; font-size: 12px; line-height: 1.5; }
+
+/* -------- botões -------- */
+:root[data-visual="moderno"] .btn {
+  background: var(--btn-bg); color: #fff; border: 1px solid transparent; border-radius: 2px; padding: 3px 14px;
+  box-shadow: none; margin: 0 8px 8px 0; line-height: 1.4; font-size: 13px;
+}
+:root[data-visual="moderno"] .btn:hover { filter: none; background: #026ec1; }
+:root[data-visual="moderno"] .btn:active { transform: none; }
+:root[data-visual="moderno"] .btn:focus-visible { outline: 1px solid var(--m-azul); outline-offset: 2px; }
+:root[data-visual="moderno"] .btn .hk { color: rgba(255, 255, 255, .7); font-family: var(--font); font-size: .9em; }
+:root[data-visual="moderno"] .btn.sec { background: var(--m-input); color: var(--m-txt); border-color: var(--m-borda2); }
+:root[data-visual="moderno"] .btn.sec:hover { background: #3c3c3c; }
+:root[data-visual="moderno"] .btn.sec .hk { color: var(--m-fraco); }
+:root[data-visual="moderno"] .btn.perigo { background: #c42b1c; color: #fff; }
+
+/* campos de entrada */
+:root[data-visual="moderno"] select,
+:root[data-visual="moderno"] input[type=text], :root[data-visual="moderno"] input[type=number], :root[data-visual="moderno"] input[type=search], :root[data-visual="moderno"] input:not([type]) {
+  background: var(--m-input); color: var(--m-txt); border: 1px solid var(--m-borda2); border-radius: 2px; padding: 2px 6px; font-size: 13px;
+}
+:root[data-visual="moderno"] select:focus, :root[data-visual="moderno"] input:focus { outline: 1px solid var(--m-azul); outline-offset: -1px; }
+:root[data-visual="moderno"] select:disabled { opacity: .5; }
+:root[data-visual="moderno"] input[type=checkbox] { accent-color: var(--m-azul); }
+
+/* -------- início e progresso: um cartão centrado, como a tela de boas-vindas -------- */
+:root[data-visual="moderno"] #v-inicio, :root[data-visual="moderno"] #v-prog { background: var(--m-bg); padding: 24px; }
+:root[data-visual="moderno"] #v-inicio .win, :root[data-visual="moderno"] #v-prog .win { border: 1px solid var(--m-borda); border-radius: 8px; overflow: hidden; }
+:root[data-visual="moderno"] .logo { color: #569cd6; text-shadow: none; margin: .8em 0 1em; }
+:root[data-visual="moderno"] .inicio-grid h3 { color: #fff; font-weight: 600; font-size: 1.15em; }
+:root[data-visual="moderno"] .cartao { border: 1px solid var(--m-borda); border-radius: 6px; background: var(--m-side); padding: 10px 14px; }
+:root[data-visual="moderno"] .barra-prog { height: 6px; background: var(--m-input); border: 0; border-radius: 3px; overflow: hidden; }
+:root[data-visual="moderno"] .barra-prog > i { background: var(--m-azul); border-radius: 3px; }
+
+/* -------- leitura (aulas, livro, trilha avançada) -------- */
+:root[data-visual="moderno"] .leitura .corpo { padding: 20px 40px 48px; }
+:root[data-visual="moderno"] .aula { max-width: 880px; }
+:root[data-visual="moderno"] .aula .cab { border-bottom: 1px solid var(--m-borda); padding-bottom: 12px; margin-bottom: 16px; }
+:root[data-visual="moderno"] .aula .cab .num { color: var(--m-fraco); font-size: .9em; }
+:root[data-visual="moderno"] .aula h1 { color: #fff; font-weight: 600; font-size: 2em; line-height: 1.25; margin: .2em 0; }
+:root[data-visual="moderno"] .aula .sub { color: var(--m-fraco); }
+:root[data-visual="moderno"] .aula h2 { color: #fff; font-weight: 600; font-size: 1.45em; border-bottom: 1px solid var(--m-borda); padding-bottom: .25em; margin-top: 1.6em; }
+:root[data-visual="moderno"] .aula h2::before { content: none; }
+:root[data-visual="moderno"] .aula h3 { color: #fff; font-weight: 600; font-size: 1.15em; }
+:root[data-visual="moderno"] .aula h4 { color: var(--m-txt); font-weight: 600; text-decoration: none; }
+:root[data-visual="moderno"] .aula p { margin: .6em 0; }
+:root[data-visual="moderno"] .aula b { color: #fff; font-weight: 600; text-shadow: none; }
+:root[data-visual="moderno"] .aula i { color: inherit; font-style: italic; }
+:root[data-visual="moderno"] .aula code {
+  font-family: var(--font); font-size: .88em; color: #ce9178; background: rgba(255, 255, 255, .07); border-radius: 3px; padding: .1em .4em;
+}
+:root[data-visual="moderno"] .aula ul > li::before { content: '\2022'; color: var(--m-fraco); font-family: inherit; font-size: 1em; }
+:root[data-visual="moderno"] .aula blockquote { border-left: 4px solid #444; color: var(--m-fraco); padding: .1em 1.2em; }
+:root[data-visual="moderno"] .aula a { color: var(--link); text-decoration: none; }
+:root[data-visual="moderno"] .aula a:hover { text-decoration: underline; }
+:root[data-visual="moderno"] .objetivos { border: 1px solid var(--m-borda); border-radius: 6px; background: var(--m-side); padding: 10px 16px; }
+:root[data-visual="moderno"] .objetivos .tt { color: #fff; font-weight: 600; }
+
+:root[data-visual="moderno"] .aula table { border-collapse: collapse; }
+:root[data-visual="moderno"] .aula th { background: var(--m-side); color: #fff; font-weight: 600; border: 1px solid var(--m-borda); padding: 4px 10px; }
+:root[data-visual="moderno"] .aula td { border: 1px solid var(--m-borda); padding: 4px 10px; }
+
+/* notas = avisos do markdown */
+:root[data-visual="moderno"] .nota { border: 0; border-left: 3px solid; border-radius: 0 6px 6px 0; padding: 8px 16px; background: rgba(255, 255, 255, .03); }
+:root[data-visual="moderno"] .nota .nt { font-weight: 600; }
+:root[data-visual="moderno"] .nota.dica { border-color: #89d185; background: rgba(137, 209, 133, .07); } :root[data-visual="moderno"] .nota.dica .nt { color: #89d185; }
+:root[data-visual="moderno"] .nota.atencao { border-color: #f48771; background: rgba(244, 135, 113, .07); } :root[data-visual="moderno"] .nota.atencao .nt { color: #f48771; }
+:root[data-visual="moderno"] .nota.anos90 { border-color: #c586c0; background: rgba(197, 134, 192, .08); } :root[data-visual="moderno"] .nota.anos90 .nt { color: #c586c0; }
+:root[data-visual="moderno"] .nota.cpu { border-color: #4fc1ff; background: rgba(79, 193, 255, .07); } :root[data-visual="moderno"] .nota.cpu .nt { color: #4fc1ff; }
+:root[data-visual="moderno"] .nota.resumo { border-color: #cca700; background: rgba(204, 167, 0, .07); } :root[data-visual="moderno"] .nota.resumo .nt { color: #e2c08d; }
+
+/* blocos de código */
+:root[data-visual="moderno"] .codigo { border: 1px solid var(--m-borda); border-radius: 6px; overflow: hidden; }
+:root[data-visual="moderno"] .codigo .cbar { background: var(--m-side); color: var(--m-fraco); border-bottom: 1px solid var(--m-borda); padding: 4px 8px 4px 12px; font-size: 12px; }
+:root[data-visual="moderno"] .codigo .cbar button { background: none; color: var(--m-txt); border: 1px solid var(--m-borda2); border-radius: 3px; padding: 1px 8px; font-size: 12px; }
+:root[data-visual="moderno"] .codigo .cbar button:hover { background: var(--m-hover); color: #fff; }
+:root[data-visual="moderno"] .codigo .cbar button.jogar { background: var(--m-azul); border-color: var(--m-azul); color: #fff; font-weight: 600; }
+:root[data-visual="moderno"] .codigo .cbar button.jogar:hover { background: #026ec1; }
+:root[data-visual="moderno"] pre.asm { line-height: 1.5; padding: 10px 16px; }
+:root[data-visual="moderno"] pre.diag { color: #9cdcfe; border: 1px solid var(--m-borda); border-radius: 6px; padding: 10px 16px; font-family: var(--font); font-size: calc(var(--code-fs) * .92); }
+:root[data-visual="moderno"] .diag-t { color: var(--m-fraco); }
+:root[data-visual="moderno"] .k-com { color: var(--com); font-style: italic; }
+
+/* quiz */
+:root[data-visual="moderno"] .quiz { border: 1px solid var(--m-borda); border-radius: 6px; background: var(--m-side); padding: 10px 16px 14px; }
+:root[data-visual="moderno"] .quiz > .qt { color: #dcdcaa; font-weight: 600; }
+:root[data-visual="moderno"] .quiz .q .enun { color: #fff; }
+:root[data-visual="moderno"] .quiz .op { border-radius: 4px; padding: 3px 8px; }
+:root[data-visual="moderno"] .quiz .op:hover:not([disabled]) { background: var(--m-hover); color: #fff; }
+:root[data-visual="moderno"] .quiz .op .mk { color: var(--m-fraco); font-family: var(--font); }
+:root[data-visual="moderno"] .quiz .placar { color: #dcdcaa; }
+
+/* exercícios */
+:root[data-visual="moderno"] .exercicio { border: 1px solid var(--m-borda); border-top: 2px solid #89d185; border-radius: 6px; background: var(--m-side); padding: 10px 16px 14px; }
+:root[data-visual="moderno"] .exercicio > .et { color: #89d185; font-weight: 600; }
+:root[data-visual="moderno"] .exercicio .nivel { color: #dcdcaa; font-weight: 400; }
+:root[data-visual="moderno"] .exercicio .regras { color: var(--m-fraco); }
+
+/* -------- editor de código -------- */
+:root[data-visual="moderno"] .editor { border: 1px solid var(--m-borda); }
+:root[data-visual="moderno"] .editor .gutter { color: #6e7681; background: transparent; padding-right: 14px; width: 7ch; }
+:root[data-visual="moderno"] .editor .gutter div.bp { color: #fff; background: transparent; }
+:root[data-visual="moderno"] .editor .gutter div.bp::before {
+  content: ''; position: absolute; left: 6px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: #e51400;
+}
+:root[data-visual="moderno"] .editor .gutter div.erro { color: #fff; background: rgba(244, 135, 113, .35); }
+:root[data-visual="moderno"] .editor textarea { caret-color: #aeafad; }
+:root[data-visual="moderno"] .editor textarea::selection { background: rgba(38, 79, 120, .8); color: transparent; }
+:root[data-visual="moderno"] .editor .linha-atual { background: rgba(255, 255, 0, .2); opacity: 1; border: 1px solid rgba(255, 255, 0, .35); border-width: 1px 0; }
+:root[data-visual="moderno"] .editor .linha-bp { background: rgba(229, 20, 0, .18); opacity: 1; }
+
+/* -------- laboratório (depurador) -------- */
+:root[data-visual="moderno"] #v-lab { gap: 1px; padding-bottom: 0; }
+:root[data-visual="moderno"] .lab-top, :root[data-visual="moderno"] .lab-esq, :root[data-visual="moderno"] .lab-dir { gap: 1px; }
+:root[data-visual="moderno"] .lab-mem { height: 19em !important; } /* o depurador fixa 12.5em em linha, pensado para a fonte VT323 maior */
+:root[data-visual="moderno"] .lab-codigo .corpo { padding: 6px 8px 8px; gap: 6px; }
+:root[data-visual="moderno"] .lab-tabs { gap: 0; font-size: 13px; border-bottom: 1px solid var(--m-borda); }
+:root[data-visual="moderno"] .lab-tabs .tab { padding: 4px 12px; color: var(--m-fraco); border-bottom: 1px solid transparent; margin-bottom: -1px; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+:root[data-visual="moderno"] .lab-tabs .tab:hover { color: var(--m-txt); }
+:root[data-visual="moderno"] .lab-tabs .tab.ativo { background: none; color: #e7e7e7; border-bottom-color: var(--m-azul); }
+:root[data-visual="moderno"] .lab-tabs .btn { margin: 0 0 4px 6px; }
+:root[data-visual="moderno"] .lab-barra { background: var(--m-side); padding: 8px 10px 0; }
+:root[data-visual="moderno"] .lab-barra .stats { background: var(--m-bg); color: var(--m-txt); border: 1px solid var(--m-borda); border-radius: 2px; font-family: var(--font); font-size: 12px; padding: 2px 8px; }
+:root[data-visual="moderno"] .lab-barra select, :root[data-visual="moderno"] .lab-barra input.param { margin: 0 8px 8px 0; }
+:root[data-visual="moderno"] .lab-barra input.param { color: var(--m-txt); font-size: 13px; }
+
+:root[data-visual="moderno"] .regs .nm { color: #9cdcfe; }
+:root[data-visual="moderno"] .regs .v { color: #d4d4d4; }
+:root[data-visual="moderno"] .regs .mud { color: #ffe066; background: var(--m-mudou); border-radius: 2px; }
+:root[data-visual="moderno"] .regs .dim { color: var(--m-fraco); }
+:root[data-visual="moderno"] .flags-g { font-family: var(--font); }
+:root[data-visual="moderno"] .flags-g .f .fn { color: #9cdcfe; }
+:root[data-visual="moderno"] .flags-g .f.on .fv { color: #89d185; }
+:root[data-visual="moderno"] .flags-g .f.mud { background: var(--m-mudou); color: #ffe066; border-radius: 2px; }
+:root[data-visual="moderno"] .flags-g .f.mud .fn { color: #ffe066; }
+:root[data-visual="moderno"] .lista-mono { line-height: 1.5; font-size: var(--code-fs); }
+:root[data-visual="moderno"] .lista-mono .sp { background: var(--m-sel); color: #fff; }
+:root[data-visual="moderno"] .lista-mono .bpm { color: #e51400; }
+:root[data-visual="moderno"] .lista-mono .w { color: #ffe066; background: var(--m-mudou); }
+:root[data-visual="moderno"] .lista-mono .ad { color: #9cdcfe; }
+:root[data-visual="moderno"] .lista-mono .as { color: #ce9178; }
+:root[data-visual="moderno"] .regs { font-size: var(--code-fs); line-height: 1.6; }
+:root[data-visual="moderno"] canvas.tela:focus { box-shadow: 0 0 0 1px var(--m-azul); }
+:root[data-visual="moderno"] .msgs { font-family: var(--font); font-size: var(--code-fs); }
+:root[data-visual="moderno"] .msgs .m.erro { color: #f48771; }
+:root[data-visual="moderno"] .msgs .m.aviso { color: #cca700; }
+:root[data-visual="moderno"] .msgs .m.info, :root[data-visual="moderno"] .msgs .m.ok { color: #89d185; }
+:root[data-visual="moderno"] .mem-ctl { font-size: 13px; }
+:root[data-visual="moderno"] .ex-painel { border: 1px solid var(--m-borda); border-left: 3px solid #89d185; border-radius: 0 4px 4px 0; padding: 6px 10px; }
+:root[data-visual="moderno"] .ex-painel .et { color: #89d185; font-weight: 600; }
+:root[data-visual="moderno"] .aguardando { color: #dcdcaa; }
+
+/* depurador compacto dentro das aulas: painel de depuração colado ao código */
+:root[data-visual="moderno"] .mini-dbg { border: 1px solid var(--m-borda); border-top: 2px solid #cca700; border-radius: 0 0 6px 6px; margin-top: -8px; background: var(--m-side); padding: 8px 12px 4px; }
+:root[data-visual="moderno"] .mini-dbg pre.asm { border: 1px solid var(--m-borda); line-height: 1.5; padding: 6px 8px; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur { background: rgba(255, 255, 0, .2); color: #fff; outline: 1px solid rgba(255, 255, 0, .35); }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur span { color: inherit !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-ins { color: var(--ins) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-reg { color: var(--reg) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-num { color: var(--num) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-str { color: var(--str) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-com { color: var(--com) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-dir { color: var(--dir) !important; }
+:root[data-visual="moderno"] .mini-dbg pre.asm .cur .k-lbl { color: var(--lbl) !important; }
+/* a saída do programa continua sendo uma tela de DOS */
+:root[data-visual="moderno"] .mini-dbg .saida { font-family: var(--font-tela); font-size: calc(var(--code-fs) * 1.3); line-height: 1.1; border-color: var(--m-borda); border-radius: 3px; }
+:root[data-visual="moderno"] .mini-dbg .ctl input { background: var(--m-input); color: var(--m-txt); border: 1px solid var(--m-borda2); margin: 0 8px 8px 0; }
+:root[data-visual="moderno"] .mini-dbg .st { color: var(--m-fraco); font-size: 13px; }
+:root[data-visual="moderno"] .mini-dbg .ev { color: #dcdcaa; }
+:root[data-visual="moderno"] .mini-dbg .ev.erro { color: #f48771; }
+:root[data-visual="moderno"] .mini-dbg canvas.mini-gfx { border-color: var(--m-borda); }
+:root[data-visual="moderno"] .disco .arq a { color: var(--link); }
+
+/* widgets interativos */
+:root[data-visual="moderno"] .widget { border: 1px solid var(--m-borda); border-top: 2px solid #4fc1ff; border-radius: 6px; background: var(--m-side); padding: 10px 16px 14px; }
+:root[data-visual="moderno"] .widget > .wt { color: #4fc1ff; font-weight: 600; }
+:root[data-visual="moderno"] .widget input[type=text], :root[data-visual="moderno"] .widget input[type=number], :root[data-visual="moderno"] .widget select { color: #dcdcaa; font-family: var(--font); }
+:root[data-visual="moderno"] .bits { font-family: var(--font); }
+:root[data-visual="moderno"] .bits .bit { background: var(--m-input); border: 1px solid var(--m-borda2); color: var(--m-fraco); border-radius: 3px; }
+:root[data-visual="moderno"] .bits .bit.on { background: var(--m-azul); border-color: var(--m-azul); color: #fff; }
+:root[data-visual="moderno"] .bits .idx { color: var(--m-fraco); }
+:root[data-visual="moderno"] .pilha-vis { font-family: var(--font); }
+:root[data-visual="moderno"] .pilha-vis .cel .end { color: #9cdcfe; }
+:root[data-visual="moderno"] .pilha-vis .cel .val { background: var(--m-input); border-radius: 2px; }
+:root[data-visual="moderno"] .pilha-vis .cel.topo .val { background: var(--m-azul); color: #fff; }
+
+/* -------- livro da BIOS -------- */
+:root[data-visual="moderno"] .livro-busca { box-shadow: 0 0 0 8px var(--win-bg); margin: 8px 12px 10px; width: calc(100% - 24px); padding: 4px 8px; }
+:root[data-visual="moderno"] .livro-busca::placeholder { color: var(--m-fraco); }
+:root[data-visual="moderno"] .livro-busca:focus { outline: 1px solid var(--m-azul); }
+:root[data-visual="moderno"] .livro-secoes summary { color: var(--link); }
+:root[data-visual="moderno"] .livro-nav { border-top: 1px solid var(--m-borda); }
+:root[data-visual="moderno"] .res-busca { border: 1px solid transparent; border-left: 2px solid var(--m-azul); border-radius: 0 4px 4px 0; padding: 6px 12px; }
+:root[data-visual="moderno"] .res-busca:hover { background: var(--m-hover); border-color: var(--m-borda); border-left-color: var(--m-azul); }
+:root[data-visual="moderno"] .res-busca .rt { color: #fff; font-weight: 600; }
+:root[data-visual="moderno"] .res-busca .rc { color: var(--m-fraco); }
+:root[data-visual="moderno"] .res-busca .rx { color: var(--m-txt); }
+:root[data-visual="moderno"] mark, :root[data-visual="moderno"] .aula mark code, :root[data-visual="moderno"] .aula code mark { background: rgba(234, 92, 0, .33); color: #fff; outline: 1px solid rgba(234, 92, 0, .6); border-radius: 2px; }
+:root[data-visual="moderno"] .alvo { outline: 1px solid var(--m-azul); outline-offset: 4px; border-radius: 2px; }
+
+/* -------- referência -------- */
+:root[data-visual="moderno"] .ref-tabs { gap: 0; border-bottom: 1px solid var(--m-borda); margin-bottom: 12px; font-size: 13px; }
+:root[data-visual="moderno"] .ref-tabs .tab { border: 0; border-bottom: 1px solid transparent; margin-bottom: -1px; padding: 6px 12px; color: var(--m-fraco); }
+:root[data-visual="moderno"] .ref-tabs .tab:hover { color: var(--m-txt); }
+:root[data-visual="moderno"] .ref-tabs .tab.ativo { background: none; color: #fff; border-bottom-color: var(--m-azul); }
+:root[data-visual="moderno"] .ref-busca { width: 36ch; margin-bottom: 10px; }
+:root[data-visual="moderno"] .ascii-g .c { border: 1px solid var(--m-borda); border-radius: 3px; background: var(--m-side); }
+:root[data-visual="moderno"] .ascii-g .c .g { color: #fff; font-family: var(--font); }
+:root[data-visual="moderno"] .ascii-g .c .h { color: var(--m-fraco); font-family: var(--font); }
+:root[data-visual="moderno"] .ascii-g .c:hover { background: var(--m-hover); border-color: var(--m-azul); }
+
+/* -------- diálogos -------- */
+:root[data-visual="moderno"] .dlg-fundo { background: rgba(0, 0, 0, .5); }
+:root[data-visual="moderno"] .dlg.win { --win-bg: var(--dlg-bg); --win-fg: var(--dlg-fg); border: 1px solid #454545; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, .55); }
+:root[data-visual="moderno"] .dlg.win > .titulo { background: var(--dlg-bg); }
+:root[data-visual="moderno"] .dlg.win > .titulo span { background: none; border: 0; font-weight: 600; padding: 0 20px; }
+:root[data-visual="moderno"] .dlg.win > .titulo span::before { content: none; }
+:root[data-visual="moderno"] .dlg .corpo { padding: 12px 20px 8px; }
+:root[data-visual="moderno"] .dlg label { margin: 6px 0; }
+:root[data-visual="moderno"] .dlg select { background: var(--m-input); color: var(--m-txt); border: 1px solid var(--m-borda2); }
+:root[data-visual="moderno"] .dlg .botoes { justify-content: flex-end; margin-top: 16px; }
+:root[data-visual="moderno"] .dlg pre { font-family: var(--font); font-size: 13px; }
+
+/* a tela de boot é a BIOS do PC simulado: continua em modo texto */
+:root[data-visual="moderno"] #boot { font-family: var(--font-tela); -webkit-font-smoothing: none; }
+
+@media (max-width: 800px) {
+  :root[data-visual="moderno"] #v-aulas .indice, :root[data-visual="moderno"] #v-avancado .indice, :root[data-visual="moderno"] #v-livro .indice { width: auto; }
+  :root[data-visual="moderno"] .leitura .corpo { padding: 16px 16px 40px; }
+  :root[data-visual="moderno"] .win > .corpo { padding: 10px 12px; }
+  :root[data-visual="moderno"] #menubar { height: auto; min-height: 34px; padding: 4px 6px; }
+  :root[data-visual="moderno"] #v-inicio, :root[data-visual="moderno"] #v-prog { padding: 12px; }
+  :root[data-visual="moderno"] .win { box-shadow: none; }
+}

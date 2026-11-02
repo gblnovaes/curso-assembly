@@ -173,10 +173,30 @@
       }
       if (ex.maxCiclos && m.cycles > ex.maxCiclos) { r.ok = false; r.msgs.push('Gastou ' + m.cycles + ' ciclos; o limite é ' + ex.maxCiclos + '.'); }
       if (!r.ok) todos = false;
+      // "impressão digital" do resultado, para notar um programa que ignora os valores de entrada
+      r.setup = t.setup || {};
+      r.assinatura = run.status + '|' + m.outputText() + '|' + R16.filter(x => x !== 'IP').map(x => m.getReg(x)).join(',');
       res.testes.push(r);
     }
     res.ok = todos && estaticoOk;
+    res.dica = dicaEntradaIgnorada(res.testes);
     return res;
+  }
+
+  // Testes com entradas diferentes (em registradores) que terminaram exatamente iguais e falharam:
+  // quase sempre o programa sobrescreveu o registrador de entrada (ex.: MOV AX, 1234 antes do CALL).
+  function dicaEntradaIgnorada(testes) {
+    const regs = (t) => Object.keys(t.setup).filter(k => R16.includes(k.toUpperCase()) || R8.includes(k.toUpperCase()));
+    const comReg = testes.filter(t => regs(t).length);
+    // só quando um teste passou e outro falhou: sinal de um valor fixo no código (o certo por coincidência)
+    if (comReg.length < 2 || !comReg.some(t => !t.ok) || !comReg.some(t => t.ok)) return null;
+    if (comReg.some(t => t.assinatura !== comReg[0].assinatura)) return null;
+    const nomes = [...new Set(comReg.flatMap(regs).map(k => k.toUpperCase()))];
+    const variam = nomes.filter(k => new Set(comReg.map(t => norm(t.setup[k] !== undefined ? t.setup[k] : t.setup[k.toLowerCase()], R8.includes(k) ? 8 : 16))).size > 1);
+    if (!variam.length) return null;
+    const lista = variam.join(' e ');
+    return 'Atenção: seu programa deu exatamente o mesmo resultado em todos os testes (por isso só um deles passou), mas cada teste começa com um valor diferente em ' + lista + '. '
+      + 'O verificador já coloca o valor de teste em ' + lista + ' antes do programa começar. Não use MOV ' + variam[0] + ', ... no início para escolher um número: use o valor que já está lá.';
   }
 
   function mensagens(r) {
@@ -187,6 +207,7 @@
       out.push({ t: t.ok ? 'ok' : 'erro', msg: (t.ok ? '√ ' : '× ') + t.nome });
       for (const m of t.msgs) out.push({ t: t.ok ? 'info' : 'aviso', msg: '   ' + m });
     }
+    if (r.dica && !r.ok) out.push({ t: 'aviso', msg: r.dica });
     out.push({ t: r.ok ? 'ok' : 'erro', msg: r.ok ? '■ Exercício resolvido!' : '■ Ainda não está certo. Ajuste e verifique de novo.' });
     return out;
   }

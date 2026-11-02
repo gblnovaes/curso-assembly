@@ -52,10 +52,10 @@ O modo protegido do 286 tinha um problema: depois de entrar, não havia instruç
   23  Multitarefa                 troca de contexto, escalonador
   24  O modo virtual 8086         rodar um .COM dentro do seu kernel
   ─────────────────────────────── um sistema de verdade ─────────────────────
-  25  C para quem já sabe Assembly
-  26  Um kernel de 32 bits estilo Unix
-  27  Desenho de sistemas operacionais
-  28  Depois do 386               64 bits, APIC, UEFI
+  25  C para quem já sabe Assembly  quadro de pilha, cdecl, GCC cruzado, ligador
+  26  Um kernel de 32 bits estilo Unix  ELF, FAT12, fork/exec, shell e pipes
+  27  Desenho de sistemas operacionais  monolítico × microkernel, syscalls
+  28  Depois do 386               CPUID, APIC, 64 bits, UEFI
 ```
 
 Os módulos 16 a 18 ainda moram no modo real e preparam as ferramentas. A partir do 19, cada módulo usa uma peça nova do 386 para resolver um dos três limites do começo desta aula.
@@ -157,6 +157,6 @@ O último teste dá 100000h, um endereço que passa de 1 MB. O 8086 só tem 20 f
 :::resumo
 - O modo real tem três limites: 1 MB de memória, nenhuma proteção e nenhum jeito de o kernel tomar a CPU de volta.
 - O modo protegido do 286 trouxe descritores e anéis; o 386 completou com 32 bits, paginação e o modo v86.
-- A trilha vai do modo real (módulos 16 a 18) ao modo protegido (19 a 24) e termina num kernel de 32 bits estilo Unix (25 a 27).
+- A trilha vai do modo real (módulos 16 a 18) ao modo protegido (19 a 24) e chega a um kernel de 32 bits estilo Unix (25 e 26), ao desenho de sistemas operacionais (27) e ao que veio depois do 386 (28).
 - Antes de seguir, revise segmentos, interrupções, o 8259, o boot e STRUC.
 :::

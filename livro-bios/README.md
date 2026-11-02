@@ -87,6 +87,14 @@ para quem está aprendendo Assembly do 8086 em sintaxe MASM/TASM.
 22. [O DOS por dentro (e o MINIOS)](cap22-o-dos-por-dentro.md): IO.SYS, MSDOS.SYS e COMMAND.COM,
     FAT12, PSP, EXEC, INT 20H a 2FH e a comparação função a função com o MINIOS.
 
+### Parte VIII · Do modo real aos 64 bits (trilha avançada)
+
+23. [A BIOS depois do modo protegido](cap23-bios-e-modo-protegido.md): o que acontece com as `INT`
+    fora do modo real, as quatro estratégias, o que coletar antes, o mapa de memória `E820H` e a
+    linha A20.
+24. [Depois da BIOS: UEFI, ACPI e o PC moderno](cap24-uefi-acpi-pc-moderno.md): as fases do UEFI, GPT
+    e ESP, o que substituiu cada serviço `INT`, as tabelas do ACPI e o fim do CSM.
+
 ### Apêndices
 
 - [A · Referência rápida de todas as funções](apendice-a-referencia-rapida.md)
@@ -103,7 +111,8 @@ para quem está aprendendo Assembly do 8086 em sintaxe MASM/TASM.
 - **Base 1** é o padrão para contagens e índices; **base 0** só quando informado.
 - Nomes de modelos: PC, PC XT, PC AT, XT 286, PCjr, PC Convertible, PS/2 (e "Model 30" quando é
   exceção). "AT e posteriores" inclui XT 286 e PS/2.
-- Código: só instruções reais do 8086, sintaxe MASM/TASM. Deslocamentos de mais de um bit usam
+- Código: só instruções reais do 8086, sintaxe MASM/TASM (a Parte VIII é a exceção: usa NASM e
+  instruções do 386, como a trilha avançada que ela acompanha). Deslocamentos de mais de um bit usam
   `CL`; nada de `PUSH` imediato, `SHL reg,n` ou outras formas do 80186 em diante. Blocos marcados
   `fragmento` são trechos para leitura; os demais são programas completos que montam no montador
   do curso.
@@ -113,7 +122,9 @@ para quem está aprendendo Assembly do 8086 em sintaxe MASM/TASM.
 Cada capítulo é um arquivo Markdown `capNN-assunto.md` com um cabeçalho igual ao das aulas
 (`id`, `numero`, `parte`, `titulo`, `aulas`), para facilitar a integração futura com o aplicativo
 do curso. Os links para as aulas são relativos (`../conteudo/aulaNN-*.md`); os blocos de código
-usam a mesma marcação das aulas (` ```asm ` com `titulo="..."` e `fragmento`).
+usam a mesma marcação das aulas (` ```asm ` com `titulo="..."` e `fragmento`). Os capítulos da
+Parte VIII apontam para a trilha avançada com `../conteudo-386/aulaNN-*.md`, e **só aparecem no
+aplicativo com a trilha avançada ligada** (Opções, ou `?avancado` na URL).
 
 ## Correspondência com o guia de origem
 

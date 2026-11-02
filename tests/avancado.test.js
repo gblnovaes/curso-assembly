@@ -30,8 +30,25 @@ global.CURSO_CONTEUDO = { aulas: principal.concat(trilha) };
 const modIds = new Set(modulos.map(m => m.id));
 const idsPrincipal = new Set(principal.map(a => a.id));
 const idsTrilha = new Set(trilha.map(a => a.id));
-let caps = null;
-try { const l = buildLivro(principal); caps = l && new Set(l.capitulos.map(c => c.id)); } catch (e) { falha('livro-bios: ' + e.message); }
+let caps = null, livro = null;
+try { livro = buildLivro(principal); caps = livro && new Set(livro.capitulos.map(c => c.id)); } catch (e) { falha('livro-bios: ' + e.message); }
+
+// exemplo NASM: monta e, se for executável, roda na máquina 386 até o fim
+function conferirNasm(nome, b) {
+  const p = N.temArquivos(b.code) ? N.montarDisco(b.code) : N.montar(b.code);
+  if (!p.ok) { falha(nome + ' não monta: ' + p.erros.map(e => 'linha ' + e.linha + ': ' + e.msg).join(' | ')); return; }
+  ok++;
+  if (!b.run) return;
+  const m = new M386.Maquina({ memoria: 8 * 1024 * 1024 });
+  const opts = { modo: b.modo || 'com', org: b.org ? +b.org : undefined };
+  if (p.arquivos) opts.disco = p.bytes;
+  m.carregar(p.arquivos && opts.modo !== 'boot' ? p.arquivos[0].bytes : p.bytes, opts);
+  if (b.entrada) m.teclar(b.entrada);
+  m.executar(20000000);
+  const fim = b.termina || 'terminado';
+  if (m.status !== fim) falha(nome + ': terminou com "' + m.status + '" (' + m.motivo + '), esperado "' + fim + '"');
+  else ok++;
+}
 
 for (const a of trilha) {
   if (!modIds.has(a.modulo)) falha(a.id + ': módulo ' + a.modulo + ' não existe'); else ok++;
@@ -47,24 +64,7 @@ for (const a of trilha) {
       if (!p.ok) falha(nome + ' não monta: ' + p.errors.map(e => 'linha ' + e.line + ': ' + e.msg).join(' | '));
       else ok++;
     }
-    if (b.t === 'nasm' && !b.soLeitura) {
-      // exemplo NASM: monta e, se for executável, roda na máquina 386 até o fim
-      const nome = a.id + ' [' + (b.titulo || b.code.split('\n')[0]) + ']';
-      const p = N.temArquivos(b.code) ? N.montarDisco(b.code) : N.montar(b.code);
-      if (!p.ok) { falha(nome + ' não monta: ' + p.erros.map(e => 'linha ' + e.linha + ': ' + e.msg).join(' | ')); continue; }
-      ok++;
-      if (b.run) {
-        const m = new M386.Maquina({ memoria: 8 * 1024 * 1024 });
-        const opts = { modo: b.modo || 'com', org: b.org ? +b.org : undefined };
-        if (p.arquivos) opts.disco = p.bytes;
-        m.carregar(p.arquivos && opts.modo !== 'boot' ? p.arquivos[0].bytes : p.bytes, opts);
-        if (b.entrada) m.teclar(b.entrada);
-        m.executar(20000000);
-        const fim = b.termina || 'terminado';
-        if (m.status !== fim) falha(nome + ': terminou com "' + m.status + '" (' + m.motivo + '), esperado "' + fim + '"');
-        else ok++;
-      }
-    }
+    if (b.t === 'nasm' && !b.soLeitura) conferirNasm(a.id + ' [' + (b.titulo || b.code.split('\n')[0]) + ']', b);
     if (b.t === 'ex') {
       const ex = b.ex;
       const V = ex.maquina === '386' ? V386 : V0;
@@ -80,6 +80,19 @@ for (const a of trilha) {
     }
   }
 }
+// capítulos do livro que acompanham a trilha (Parte VIII): links para a trilha e exemplos NASM
+if (livro) for (const c of livro.capitulos.filter(c => c.avancado)) {
+  ok++;
+  if (!c.busca.length) falha('livro ' + c.id + ': sem texto para a busca');
+  for (const b of c.blocks) {
+    if (b.html) for (const m of b.html.matchAll(/href="#(aula|avancado|livro)\/([^"\/]+)/g)) {
+      const alvo = m[1] === 'aula' ? idsPrincipal : m[1] === 'avancado' ? idsTrilha : caps;
+      if (!alvo.has(m[2])) falha('livro ' + c.id + ': link quebrado #' + m[1] + '/' + m[2]); else ok++;
+    }
+    if (b.t === 'nasm' && !b.soLeitura) conferirNasm('livro ' + c.id + ' [' + (b.titulo || b.code.split('\n')[0]) + ']', b);
+  }
+}
+if (livro && !livro.partes.some(p => p.avancado)) falha('livro: esperava a Parte VIII marcada como (trilha avançada)');
 if (trilha.length && Math.min(...trilha.map(a => a.numero)) <= Math.max(...principal.map(a => a.numero))) falha('a trilha avançada deve continuar a numeração do curso principal');
 
 console.log(`trilha avançada: ${trilha.length} aulas, ${ok} verificações ok, ${fail} falharam`);

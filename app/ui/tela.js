@@ -29,7 +29,8 @@
       const cm = m && m.cursorMouse ? m.cursorMouse() : null;
       this.cv.style.cursor = cm ? 'none' : '';
       if (mem[0x449] === 0x13) { this.cache = null; this.desenharVGA(mem, m ? m.dac : window.Machine8086.PALETA_PADRAO); if (cm) this.setaMouse(cm); return; }
-      const fam = getComputedStyle(document.documentElement).getPropertyValue('--font') || 'monospace';
+      const cs = getComputedStyle(document.documentElement);
+      const fam = cs.getPropertyValue('--font-tela').trim() || cs.getPropertyValue('--font') || 'monospace';  // o visual moderno mantém a tela do PC em VT323
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
       ctx.font = '18px ' + fam;

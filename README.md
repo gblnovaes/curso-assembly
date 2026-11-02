@@ -74,7 +74,7 @@ Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA
 
 A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os exemplos são escritos em NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. A trilha fica escondida quando não está ativa: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
 
-**Já prontos** (módulos 16 a 26, aulas 48 a 85):
+**Já prontos** (módulos 16 a 28, aulas 48 a 91):
 
 - **Módulo 16 — Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
 - **Módulo 17 — O 186 e o 286** (aulas 54 a 56: as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA).
@@ -87,13 +87,10 @@ A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteu
 - **Módulo 24 — O modo virtual 8086** (aulas 77 a 79: um monitor v86 que roda programas do DOS dentro do seu kernel).
 - **Módulo 25 — C para quem já sabe Assembly** (aulas 80 a 82: o quadro de pilha que o compilador monta, a convenção cdecl, o GCC cruzado e o ligador).
 - **Módulo 26 — Um kernel de 32 bits estilo Unix** (aulas 83 a 85: o formato ELF e um carregador, drivers e o FAT12, e os processos com fork, exec, shell e pipes).
+- **Módulo 27 — Desenho de sistemas operacionais** (aulas 86 a 88: monolítico, microkernel e híbrido; as chamadas de sistema do INT 21h ao SYSENTER; processos, arquivos e memória no DOS, no Unix, no Minix, no Linux e no Windows NT).
+- **Módulo 28 — Depois do 386** (aulas 89 a 91: a CPUID e a linha do tempo do x86, o APIC e os MSRs, o modo de 64 bits com a paginação de quatro níveis e o UEFI).
 
-**Planejados** (módulos 27 e 28):
-
-- **Módulo 27 — Desenho de sistemas operacionais** (DOS, Unix, Minix, Linux e NT: monolítico contra microkernel).
-- **Módulo 28 — Depois do 386** (CPUID, APIC, modo de 64 bits e UEFI).
-
-Em resumo: **38 aulas** prontas na trilha avançada (aula48 a aula85, módulos 16 a 26) e os módulos 27 e 28 em planejamento.
+Em resumo: **44 aulas** prontas na trilha avançada (aula48 a aula91, módulos 16 a 28). O plano da trilha está completo.
 
 ## Como executar
 

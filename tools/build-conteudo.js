@@ -268,12 +268,16 @@ function buildLivro(aulas) {
   const aulaDe = {};
   for (const f of fs.readdirSync(SRC).filter(f => /^aula\d+.*\.md$/.test(f))) aulaDe[f] = frontMatter(fs.readFileSync(path.join(SRC, f), 'utf8').replace(/\r\n/g, '\n')).id;
   const idsAula = new Set(aulas.map(a => a.id));
+  // aulas da trilha avançada, para os links "../conteudo-386/aulaNN-*.md" dos capítulos da Parte VIII
+  const aulaAvDe = {};
+  if (fs.existsSync(SRC_AV)) for (const f of fs.readdirSync(SRC_AV).filter(f => /^aula\d+.*\.md$/.test(f))) aulaAvDe[f] = frontMatter(fs.readFileSync(path.join(SRC_AV, f), 'utf8').replace(/\r\n/g, '\n')).id;
 
   // partes, a partir do sumário do README ("### Parte II · Tela e teclado")
   const partes = [];
   for (const m of crus['README.md'].matchAll(/^### Parte ([IVX]+) · (.*)$/gm)) {
     const fut = /\(em preparação\)/.test(m[2]);
-    partes.push({ id: ROMANOS[m[1]], romano: m[1], titulo: m[2].replace(/\s*\(em preparação\)/, '').trim(), futuro: fut });
+    const av = /\(trilha avançada\)/.test(m[2]);
+    partes.push({ id: ROMANOS[m[1]], romano: m[1], titulo: m[2].replace(/\s*\((em preparação|trilha avançada)\)/, '').trim(), futuro: fut, avancado: av });
   }
   partes.push({ id: 'apendices', romano: '', titulo: 'Apêndices' });
 
@@ -306,6 +310,10 @@ function buildLivro(aulas) {
         if (!aulaDe[nome]) throw new Error(arq + ': link para aula inexistente: ' + alvo);
         return '](aula:' + aulaDe[nome] + ')';
       }
+      if (/^\.\.\/conteudo-386\//.test(alvo)) {
+        if (!aulaAvDe[nome]) throw new Error(arq + ': link para aula inexistente da trilha avançada: ' + alvo);
+        return '](avancado:' + aulaAvDe[nome] + ')';
+      }
       if (!idDe[nome]) throw new Error(arq + ': link para arquivo inexistente do livro: ' + alvo);
       return '](livro:' + idDe[nome] + (ancora ? '/' + ancora.slice(1) : '') + ')';
     });
@@ -322,6 +330,8 @@ function buildLivro(aulas) {
       id: c.id, numero: c.numero, parte: /^\d+$/.test(meta.parte) ? +meta.parte : meta.parte, titulo: meta.titulo,
       aulas: relacionadas, blocks: c.blocks
     };
+    const parteCap = partes.find(x => x.id === cap.parte);
+    if (parteCap && parteCap.avancado) cap.avancado = true;
     cap.secoes = c.blocks.filter(b => b.t === 'html').flatMap(b => [...b.html.matchAll(/<h2 id="([^"]+)">(.*?)<\/h2>/g)].map(m => ({ id: m[1], titulo: semTags(m[2]) })));
     cap.busca = indiceBusca(cap);
     caps.push(cap);

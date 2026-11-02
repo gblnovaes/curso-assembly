@@ -3,7 +3,10 @@
   'use strict';
   const { h, janela, store, escHtml } = window.UI;
   const L = window.CURSO_LIVRO || { partes: [], capitulos: [] };
-  const caps = L.capitulos;
+  const todos = L.capitulos;
+  // a Parte VIII acompanha a trilha avançada: só aparece com ela ligada (Opções ou ?avancado)
+  const avancadoLigado = () => !!(window.Avancado && window.Avancado.ativa());
+  const visiveis = () => avancadoLigado() ? todos : todos.filter(c => !c.avancado);
 
   // ---------------- busca ----------------
   // Texto normalizado (minúsculas, sem acentos) e, para cada caractere dele,
@@ -43,7 +46,7 @@
   function montarIndice() {
     if (indice) return indice;
     indice = [];
-    for (const c of caps) for (const s of c.busca) {
+    for (const c of todos) for (const s of c.busca) {
       indice.push({ cap: c, sec: s, nt: normalizar(s.titulo).t, n: normalizar(s.texto) });
     }
     return indice;
@@ -53,7 +56,9 @@
     const p = preparar(q);
     if (!p) return [];
     const res = [];
+    const ligado = avancadoLigado();
     for (const e of montarIndice()) {
+      if (e.cap.avancado && !ligado) continue;
       let pontos = 0, ok = true;
       for (const re of p.termos) {
         const nt = conta(re, e.nt, 3), nx = conta(re, e.n.t, 8);
@@ -65,7 +70,7 @@
       if (!e.sec.id) pontos -= 2; // a abertura do capítulo perde para a seção específica
       res.push({ e, pontos });
     }
-    res.sort((a, b) => b.pontos - a.pontos || caps.indexOf(a.e.cap) - caps.indexOf(b.e.cap));
+    res.sort((a, b) => b.pontos - a.pontos || todos.indexOf(a.e.cap) - todos.indexOf(b.e.cap));
     return res.map(r => Object.assign(r, { p }));
   }
 
@@ -148,9 +153,11 @@
       const item = (c) => h('div.aula-it' + (c.id === atual && !consulta ? '.atual' : ''), { onclick: () => { location.hash = '#livro/' + c.id; }, title: c.titulo },
         h('span.chk', null, c.parte === 'apendices' ? c.titulo.replace(/^Apêndice (\w).*$/, '$1.') : c.id === 'sumario' ? '≡' : c.numero + '.'),
         h('span.tt', null, c.id === 'sumario' ? 'Sumário e como usar' : c.parte === 'apendices' ? c.titulo.replace(/^Apêndice \w · /, '') : c.titulo));
+      const caps = visiveis();
       const sum = caps.find(c => c.id === 'sumario');
       if (sum) lista.append(h('div.mod', null, item(sum)));
       for (const p of L.partes) {
+        if (p.avancado && !avancadoLigado()) continue;
         const cs = caps.filter(c => c.parte === p.id);
         const m = h('div.mod' + (cs.length ? '' : '.futuro'));
         m.append(h('div.mt', null, p.romano ? h('span.n', null, p.romano + '.') : null, h('span', null, p.titulo)));
@@ -165,7 +172,24 @@
       }
     }
 
+    // um capítulo da Parte VIII pedido por link com a trilha avançada desligada
+    function avisoAvancado(c) {
+      atual = c.id;
+      consulta = '';
+      wLeitura.setTitulo('CAP' + String(c.numero).padStart(2, '0') + '.TXT');
+      wLeitura.corpo.innerHTML = '';
+      wLeitura.corpo.append(h('div.aula.livro-cap', null,
+        h('div.cab', null, h('div.num', null, 'Livro da BIOS · Capítulo ' + c.numero), h('h1', null, c.titulo)),
+        h('p', { html: 'Este capítulo acompanha a <b>trilha avançada</b> (386 e modo protegido), que está desligada. Para lê-lo, marque <b>Mostrar a trilha avançada</b> em <b>Opções → Cores, fonte e som…</b>, ou abra o aplicativo com <code>?avancado</code> no endereço.' }),
+        h('div.livro-nav', null, h('button.btn.sec', { onclick: () => { location.hash = '#livro/sumario'; } }, 'Sumário'))));
+      wLeitura.corpo.scrollTop = 0;
+      indiceLateral();
+    }
+
     function capitulo(id, secao, manterBusca) {
+      const pedido = todos.find(x => x.id === id);
+      if (pedido && pedido.avancado && !avancadoLigado()) return avisoAvancado(pedido);
+      const caps = visiveis();
       const c = caps.find(x => x.id === id) || caps[0];
       if (!c) return;
       const mudou = c.id !== atual || !wLeitura.corpo.querySelector('.livro-cap');
@@ -268,7 +292,7 @@
   }
 
   // capítulos que complementam uma aula (para o rodapé das aulas)
-  const paraAula = (id) => caps.filter(c => c.aulas.includes(id));
+  const paraAula = (id) => visiveis().filter(c => c.aulas.includes(id));
 
-  window.Livro = { criar, paraAula, rotulo, capitulos: caps };
+  window.Livro = { criar, paraAula, rotulo, get capitulos() { return visiveis(); } };
 })();

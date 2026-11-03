@@ -1,6 +1,6 @@
 /* Trilha avançada (386 e modo protegido): índice e leitura próprios, à parte do curso principal.
-   O conteúdo vem de app/conteudo386.js (conteudo-386/*.md). Enquanto está em construção, a
-   trilha só aparece com a opção "Mostrar a trilha avançada" ligada ou com ?avancado na URL. */
+   O conteúdo vem de app/conteudo386.js (conteudo-386/*.md). A trilha
+   só aparece com a opção "Mostrar a trilha avançada" ligada ou com ?avancado na URL. */
 (function () {
   'use strict';
   const { h, janela, store } = window.UI;
@@ -20,7 +20,7 @@
 
     function atualizarIndice() {
       indiceEl.innerHTML = '';
-      indiceEl.append(h('div.em-breve', null, 'Trilha em construção: 386, modo protegido e sistemas operacionais.'));
+      indiceEl.append(h('div.em-breve', null, 'Trilha avançada: 386, modo protegido e sistemas operacionais (módulos 16 a 28).'));
       for (const mod of modulos) {
         const as = aulas.filter(a => a.modulo === mod.id);
         const m = h('div.mod' + (as.length ? '' : '.futuro'));

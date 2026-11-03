@@ -1,13 +1,14 @@
 # Curso interativo de Assembly 8086
 
-Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a cara e o espírito da programação DOS dos anos 90. Ele roda como aplicativo de desktop (Electron) ou direto no navegador.
+Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a cara e o espírito da programação DOS dos anos 90. Uma trilha avançada continua do 8086 até o 386, o modo protegido e um kernel de 32 bits. O curso roda como aplicativo de desktop (Electron), como executável pronto para Windows e Linux, ou direto no navegador.
 
-**▶ [Rodar no navegador](https://gblnovaes.github.io/curso-assembly/)**: abre o curso completo direto pelo GitHub Pages, sem instalar nada. O progresso fica salvo no próprio navegador.
+**▶ [Rodar no navegador](https://gblnovaes.github.io/curso-assembly/)**: abre o curso completo direto pelo GitHub Pages, sem instalar nada. O progresso fica salvo no próprio navegador. Para já abrir com a trilha avançada visível, use **[?avancado](https://gblnovaes.github.io/curso-assembly/?avancado)**.
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  48 aulas · 184 exercícios corrigidos automaticamente        ║
-║  302 perguntas de quiz · 7 jogos · um sistema operacional    ║
+║  92 aulas · 291 exercícios corrigidos automaticamente        ║
+║  433 perguntas de quiz · 7 jogos · um sistema operacional    ║
+║  8086 em MASM/TASM · trilha avançada 386 em NASM             ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
 
@@ -25,19 +26,24 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 | **MINIOS** (aula 44): o `DIR` do disquete depois do boot | **PINTA.ASM** (aula 47): pintura no modo 13h com o mouse pela `INT 33h` |
 | ![Visual moderno: aula](docs/screenshots/moderno-aula.png) | ![Visual moderno: laboratório](docs/screenshots/moderno-laboratorio.png) |
 | **Visual moderno** (opcional, estilo VS Code): uma aula | **Visual moderno**: o laboratório com o depurador |
+| ![Trilha avançada: máquina 386](docs/screenshots/avancado.png) | ![Livro da BIOS, Parte VIII](docs/screenshots/livro-uefi.png) |
+| **Trilha avançada** (aula 62): do setor de boot ao modo protegido de 32 bits na máquina 386, com CR0, GDTR, os descritores da GDT e a tela | **Livro da BIOS, Parte VIII** (capítulo 24): UEFI, GPT e ACPI, visível com a trilha avançada ligada |
+| ![Opções](docs/screenshots/opcoes.png) | |
+| **Opções**: o visual (DOS ou moderno), as cores, a fonte, o efeito CRT e a chave da trilha avançada | |
 
 ## O que tem dentro
 
 - **Aulas detalhadas**, com diagramas em texto, notas sobre como funciona o 8086 por dentro, histórias da época ("Nos anos 90") e um resumo no fim.
 - **Código executável em todas as aulas**: cada exemplo roda ali mesmo, passo a passo, ou abre no laboratório.
-- **Exercícios corrigidos automaticamente**: o seu código é montado e executado contra vários testes (registradores, memória, saída na tela, pilha, ciclos e bytes). Cada exercício tem dicas graduais e solução de referência.
+- **Exercícios corrigidos automaticamente**: o seu código é montado e executado contra vários testes (registradores, memória, saída na tela, pilha, ciclos e bytes). Cada exercício tem dicas graduais e solução de referência. Quando testes com valores de entrada diferentes terminam exatamente iguais (sinal de que o programa sobrescreveu o valor que o verificador colocou no registrador, por exemplo com um `MOV AX, ...` antes do `CALL`), o verificador avisa isso em vez de só marcar a falha.
 - **Quizzes** em todas as aulas, com explicação de cada resposta.
 - **Sete jogos completos** no estilo dos anos 90 (cobra, pong, invasores do espaço, blocos que caem, paredão, sapo e labirinto com fantasmas), explicados linha a linha e jogáveis em tela grande, em tempo real, com o botão **▶ Jogar**.
 - **Um sistema operacional do zero, o MINIOS**: setor de boot, kernel com a sua própria INT 21h, sistema de arquivos, EXEC, shell com comandos internos e utilitários. O botão **▶ Dar boot** liga um PC sem DOS e dá boot pelo disquete, e os sete jogos rodam nele.
 - **Simuladores**: conversor de bases, registradores, calculadora de flags, segmento:offset, pilha, complemento de dois e comparação de ciclos e bytes entre dois trechos.
 - **Laboratório (estilo Turbo Debugger)**: editor com realce, listagem com bytes e ciclos, registradores, flags, pilha, memória, variáveis, tabela de interrupções, pilha do 8087, disco C: virtual com os arquivos do aluno, linha de comando do programa, tela do usuário (texto 80×25 ou gráfico 320×200) e as teclas F2, F4, F7, F8 e F9.
 - **Referência**: instruções do 8086 e do 8087, diretivas e macros do montador, INT 21h (incluindo arquivos, memória e PSP), BIOS, mouse (INT 33h), portas de E/S, mapa da memória, tabela de ciclos e tabela ASCII da página de código 437.
-- **Livro da BIOS** (F5 ou menu Livro BIOS): os 22 capítulos e 4 apêndices de `livro-bios/` dentro do aplicativo, com busca no texto inteiro (Ctrl+F), sumário por partes, programas executáveis ali mesmo e links nos dois sentidos entre as aulas e os capítulos.
+- **Trilha avançada (386)**: 44 aulas (48 a 91, módulos 16 a 28), 107 exercícios e 131 perguntas de quiz, do formato .EXE e do ligador até o modo protegido, a paginação, os anéis, a multitarefa, o modo virtual 8086, o C e um kernel estilo Unix. Do módulo 17 em diante, os exemplos são em NASM e rodam numa máquina 386 com painel próprio (registradores de 32 bits, CR0 a CR3, GDTR, IDTR, os descritores e a tela). Fica escondida até ser ligada em **Opções** (veja [Trilha avançada](#trilha-avançada)).
+- **Livro da BIOS** (F5 ou menu Livro BIOS): os 24 capítulos e 4 apêndices de `livro-bios/` dentro do aplicativo (a Parte VIII, capítulos 23 e 24, sobre a BIOS no modo protegido e o UEFI, só aparece com a trilha avançada ligada), com busca no texto inteiro (Ctrl+F), sumário por partes, programas executáveis ali mesmo e links nos dois sentidos entre as aulas e os capítulos.
 - **Progresso salvo** no computador do aluno, com exportação e importação.
 - **Visual de época**: telas de texto com bordas duplas, temas Borland azul, preto, fósforo verde e âmbar, efeito CRT opcional, fonte VT323 e tela de boot da BIOS.
 - **Visual moderno opcional**: em **Opções → Visual**, o tema "Moderno (estilo VS Code)" troca as janelas de modo texto por painéis escuros com barra lateral, abas, barra de status azul, fonte proporcional na interface e monoespaçada no código, com realce de sintaxe no estilo do editor. A tela do PC simulado, a tela de boot e o logotipo continuam em modo texto. O visual DOS continua o padrão, e a escolha fica salva.
@@ -49,6 +55,11 @@ Tudo foi escrito do zero em JavaScript, sem dependências:
 - **Montador** compatível com a sintaxe MASM/TASM: `.MODEL`, `.STACK`, `.DATA`, `.CODE`, `SEGMENT`/`ENDS`/`ASSUME`, `PROC NEAR/FAR`, `EQU`, `=`, `DUP`, `OFFSET`, `SEG`, `PTR`, rótulos locais `@@`, `EVEN`, macros (`MACRO`/`ENDM` com `LOCAL`, `&`, `%` e `EXITM`), repetições (`REPT`, `IRP`, `IRPC`), montagem condicional (`IF`, `IFE`, `IFDEF`, `IFNDEF`, `IFB`, `IFNB`, `IFIDN`, `IFDIF`, `ELSE`, `ENDIF`, com `EQ`/`NE`/`LT`/`LE`/`GT`/`GE`), estruturas (`STRUC`/`ENDS`, com `var.campo` e `[BX].campo`), `DD`/`DQ`/`DT` com números reais e as instruções do coprocessador 8087 (com o `WAIT` que o MASM insere). Gera o código de máquina real do 8086, com as mesmas codificações do MASM. Ele **recusa instruções e modos que não existem no 8086** (como `SHL AX,2`, `PUSH 5`, `IMUL AX,BX,3` e `[AX]`), explicando o porquê.
 - **Simulador** do 8086 com 1 MB de memória, ciclos pela tabela da Intel (incluindo o custo do endereço efetivo e o de words em endereço ímpar), as particularidades do 8086 (`PUSH SP`, faixa do quociente do `IDIV`), IVT de verdade, PIC 8259, PIT 8253 (com a contagem e o alto-falante), teclado pela IRQ 1 e pela porta 60h, vídeo em modo texto (B800h) e VGA modo 13h (A000h, com a paleta do DAC e o retraço vertical), coprocessador 8087, os serviços mais usados do DOS (`INT 21h`: console, arquivos com handles num disco virtual, PSP e linha de comando, cadeia de MCBs e alocação de memória, programas residentes) e da BIOS (`INT 10h`, `13h`, `16h`, `19h`, `1Ah`), e um **driver de mouse** compatível com o da Microsoft (`INT 33h`: posição, botões, contagem de cliques, limites e a rotina de eventos da função 0Ch), que se usa com o mouse de verdade na tela do programa. Também liga **sem DOS**: um programa que é um disquete (setor de boot com 55AAh, ou vários arquivos num disquete MINIFS) é lido pela BIOS para 0000:7C00, e a `INT 13h` lê os outros setores. Depois de um `AH=31h`, o programa fica residente e o "prompt do DOS" continua rodando, com as interrupções instaladas funcionando.
 - **Avisos didáticos** durante a execução: DS ainda apontando para o PSP, `LOOP` com CX = 0, estouro de pilha, `RET` sem `CALL`, execução caindo nos dados, divisão que estoura.
+
+A trilha avançada tem o seu próprio par, também do zero e separado do simulador do 8086 (que continua intocado):
+
+- **Montador NASM** (`app/core/nasm.js`): a sintaxe do NASM com `bits 16/32`, `org`, `times`, `$`/`$$`, `%define`, `%macro`, `equ`, prefixos de tamanho e de endereço, endereços de 32 bits com escala e as instruções do 186, do 286 e do 386 (incluindo as de sistema: `lgdt`, `lidt`, `ltr`, `mov cr0`, `iretd`...). A saída é conferida byte a byte com o NASM 2.16 de verdade (`tests/nasm-corpus.asm`).
+- **Máquina 386** (`app/core/cpu386.js`): CPU 386 com modo real, protegido de 16 e 32 bits, paginação, anéis 0 a 3, TSS e troca de tarefas por hardware, modo virtual 8086 e as exceções 0 a 31 (uma exceção sem tratador para com uma mensagem didática em vez de reiniciar a máquina), mais PIC 8259, PIT, teclado, linha A20 (porta 92h e 8042), disco e um DOS mínimo. Roda programas `.COM`, imagens de boot (setor 0 em 7C00h) ou já no modo plano de 32 bits, como o GRUB entrega. O comportamento de sistema (limites e tipos de segmento, exceções, paginação, v86) é conferido com o Bochs nos cenários de `tests/cenarios386/`.
 
 ## Conteúdo
 
@@ -73,11 +84,11 @@ Tudo foi escrito do zero em JavaScript, sem dependências:
 
 Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA-ME.md).
 
-### Trilha avançada (em construção)
+### Trilha avançada
 
-A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os exemplos são escritos em NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. A trilha fica escondida quando não está ativa: para vê-la, marque "Mostrar a trilha avançada" em **Opções** ou abra o app com `?avancado` na URL.
+A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteudo-386/LEIA-ME.md), separada das aulas acima. Do módulo 17 em diante, os exemplos são escritos em NASM e rodam numa máquina 386 completa (`app/core/nasm.js` e `app/core/cpu386.js`), separada do simulador do 8086. A trilha fica escondida quando não está ativa: para vê-la, marque "Mostrar a trilha avançada" em **Opções** (ou abra o app com `?avancado` na URL). Aí aparecem o menu **Avançado**, o índice próprio da trilha e a Parte VIII do Livro da BIOS. Os exercícios marcados com `maquina: 386` são corrigidos pelo verificador da máquina 386 e têm o botão **▶ Rodar na máquina 386**.
 
-**Já prontos** (módulos 16 a 28, aulas 48 a 91):
+Módulos (aulas 48 a 91):
 
 - **Módulo 16 — Programas grandes** (aulas 48 a 53): o formato .EXE e o cabeçalho MZ, vários módulos com PUBLIC/EXTRN e o ligador, INCLUDE e bibliotecas, as convenções de chamada do C e do Pascal, e as ferramentas reais (MASM, TASM, DEBUG, DOSBox e a sintaxe do NASM). O montador do curso passou a ligar programas de vários arquivos; um código de um arquivo só é montado exatamente como antes.
 - **Módulo 17 — O 186 e o 286** (aulas 54 a 56: as instruções novas, o modo protegido de 16 bits, a linha A20 e a HMA).
@@ -93,7 +104,7 @@ A continuação do curso, a partir do módulo 16, fica em [conteudo-386/](conteu
 - **Módulo 27 — Desenho de sistemas operacionais** (aulas 86 a 88: monolítico, microkernel e híbrido; as chamadas de sistema do INT 21h ao SYSENTER; processos, arquivos e memória no DOS, no Unix, no Minix, no Linux e no Windows NT).
 - **Módulo 28 — Depois do 386** (aulas 89 a 91: a CPUID e a linha do tempo do x86, o APIC e os MSRs, o modo de 64 bits com a paginação de quatro níveis e o UEFI).
 
-Em resumo: **44 aulas** prontas na trilha avançada (aula48 a aula91, módulos 16 a 28). O plano da trilha está completo.
+Em resumo: **44 aulas**, **107 exercícios** e **131 perguntas de quiz** na trilha avançada (aula48 a aula91, módulos 16 a 28). O plano da trilha está completo.
 
 ## Como executar
 
@@ -107,6 +118,17 @@ npm start
 ```
 
 No aplicativo, **F11** liga a tela cheia.
+
+### Executáveis prontos (Windows e Linux)
+
+O `package.json` já traz a configuração do [electron-builder](https://www.electron.build). Depois do `npm install`:
+
+```
+npm run dist:win      # dist/CursoAssembly8086-portatil.exe (portátil, não precisa instalar)
+npm run dist:linux    # dist/CursoAssembly8086-1.0.0-x86_64.AppImage, o .deb e o .tar.gz
+```
+
+O `.exe` portátil abre com dois cliques. No Linux, o AppImage roda depois de `chmod +x`, e o `.deb` instala com `sudo apt install ./curso-assembly-8086_1.0.0_amd64.deb`. Os executáveis não vão para o repositório (estão no `.gitignore`).
 
 ### No navegador
 
@@ -124,10 +146,14 @@ e acesse `http://localhost:8086`. Acrescente `?semboot` ao endereço para pular 
 
 ```
 npm run conteudo    # recompila as aulas (conteudo/*.md -> app/conteudo.js), a trilha avançada (conteudo-386/*.md -> app/conteudo386.js) e o livro (livro-bios/*.md -> app/livro.js)
-npm test            # testa o montador, o simulador e todas as aulas
+npm test            # testa os montadores, os simuladores, todas as aulas e o livro
 ```
 
-O teste de conteúdo monta todos os exemplos executáveis (das aulas e do livro), confere que todo link do livro leva a uma aula ou capítulo que existe, que **a solução de cada exercício passa** e que **o código inicial de cada exercício falha**.
+O `npm test` roda, em ordem: `tests/core.test.js` (montador e simulador do 8086), `tests/conteudo.test.js` (aulas e livro), `tests/avancado.test.js` (aulas da trilha avançada), `tests/nasm.test.js` (o montador NASM contra a saída gravada do NASM real) e `tests/cpu386.test.js` (a máquina 386 contra a saída gravada do Bochs). Para checar uma aula só: `node tests/conteudo.test.js aula33`.
+
+Quem mexer na máquina 386 pode comparar com os emuladores de verdade (precisa de `nasm`, `bochs` e `qemu-system-i386`): `node tools/cenarios386.js` roda os cenários de `tests/cenarios386/` nos três, `--gravar` atualiza os `.esperado`, e `node tools/difer386.js` sorteia instruções e compara o resultado com o QEMU.
+
+O teste de conteúdo monta todos os exemplos executáveis (das aulas, da trilha avançada e do livro), confere que todo link do livro leva a uma aula ou capítulo que existe, que **a solução de cada exercício passa** e que **o código inicial de cada exercício falha**.
 
 Estrutura:
 
@@ -142,7 +168,16 @@ app/
   core/nasm.js        montador NASM da trilha avançada (386)
   core/cpu386.js      máquina 386 da trilha avançada: CPU, BIOS, DOS mínimo, PIC, PIT, teclado, disco
   core/fonte8x8.js    fonte 8x8 do modo gráfico (domínio público)
-  ui/                 interface: aulas, laboratório, depurador, widgets, referência
+  ui/app.js           janela principal, menus, rotas e opções
+  ui/aula.js          leitura das aulas, exercícios e quizzes
+  ui/avancado.js      índice e leitura da trilha avançada
+  ui/depurador.js     laboratório e depurador do 8086
+  ui/verificador.js   correção dos exercícios do 8086
+  ui/maquina386.js    painel da máquina 386 (registradores, CRs, GDT, tela)
+  ui/verificador386.js correção dos exercícios da trilha avançada
+  ui/livro.js         o Livro da BIOS (sumário, busca, links)
+  ui/referencia.js    a referência (instruções, INT 21h, BIOS, ciclos, ASCII)
+  ui/tela.js, widgets.js, util.js   tela do PC, simuladores das aulas, utilidades
   css/dos.css         temas e visual de modo texto
   css/moderno.css     visual moderno opcional (estilo VS Code)
   fonts/              fonte VT323 (licença OFL)

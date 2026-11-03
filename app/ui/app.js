@@ -251,7 +251,7 @@
       chk('crt', ' Efeito de tubo CRT (linhas de varredura)'),
       chk('som', ' Som do alto-falante do PC'),
       chk('boot', ' Mostrar a tela de boot ao abrir'),
-      chk('avancado', ' Mostrar a trilha avançada (386, em construção)')
+      chk('avancado', ' Mostrar a trilha avançada (386, modo protegido e sistemas operacionais)')
     ], [['Fechar', null]]);
   }
 

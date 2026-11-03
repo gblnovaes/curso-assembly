@@ -7,7 +7,9 @@
     "start": "electron .",
     "conteudo": "node tools/build-conteudo.js",
     "test": "node tests/core.test.js && node tests/conteudo.test.js && node tests/avancado.test.js && node tests/nasm.test.js && node tests/cpu386.test.js",
-    "web": "npx http-server app -p 8086 -c-1"
+    "web": "npx http-server app -p 8086 -c-1",
+    "dist:win": "electron-builder --win portable --x64",
+    "dist:linux": "electron-builder --linux AppImage deb tar.gz --x64"
   },
   "keywords": [
     "assembly",

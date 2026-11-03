@@ -476,7 +476,7 @@ titulo: Imprimir um número
 nivel: 2
 exigir: DIV
 --- enunciado
-Complete **IMPRIMIR_NUMERO** para imprimir o valor de AX (0 a 65535) em decimal usando `INT 21h` com `AH=02h`. O valor chega em AX quando o programa começa. Não imprima zeros à esquerda, e o número 0 deve aparecer como **0**.
+Complete **IMPRIMIR_NUMERO** para imprimir o valor de AX (0 a 65535) em decimal usando `INT 21h` com `AH=02h`. O valor chega em AX quando o programa começa: o verificador roda o programa uma vez para cada teste (1234, 0, 65535 e 10) e já coloca o número em AX, então não escreva `MOV AX, ...` antes do `CALL`. Não imprima zeros à esquerda, e o número 0 deve aparecer como **0**.
 --- inicial
 .MODEL SMALL
 .STACK 100h

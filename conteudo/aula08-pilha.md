@@ -230,7 +230,10 @@ soma:   MOV  BX, [SI]
         INT  21h
 END inicio
 --- testes
-[{ "nome": "soma em DX e registradores preservados", "espera": { "DX": 60, "BX": 4369, "CX": 8738, "SI": 13107, "pilhaEquilibrada": true } }]
+[
+ {"nome": "soma em DX e registradores preservados", "espera": {"DX": 60, "BX": 4369, "CX": 8738, "SI": 13107, "pilhaEquilibrada": true}},
+ {"nome": "outro vetor (1, 2, 3)", "setup": {"v": [1, 2, 3]}, "espera": {"DX": 6, "BX": 4369, "CX": 8738, "SI": 13107, "pilhaEquilibrada": true}}
+]
 --- dicas
 Três PUSH antes do trecho, três POP depois, na ordem inversa.
 --- solucao
@@ -306,7 +309,12 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "ARARA é palíndromo", "espera": { "BX": 1, "pilhaEquilibrada": true } }]
+[
+ {"nome": "ARARA é palíndromo", "espera": {"BX": 1, "pilhaEquilibrada": true}},
+ {"nome": "ARAMA não é palíndromo", "setup": {"pal": "ARAMA"}, "espera": {"BX": 0, "pilhaEquilibrada": true}},
+ {"nome": "ABCBA é palíndromo", "setup": {"pal": "ABCBA"}, "espera": {"BX": 1, "pilhaEquilibrada": true}},
+ {"nome": "AAAAB falha logo na primeira comparação", "setup": {"pal": "AAAAB"}, "espera": {"BX": 0, "pilhaEquilibrada": true}}
+]
 --- dicas
 No segundo laço, conte em DX quantos caracteres bateram. Desempilhe sempre todos (sem sair no meio).
 No fim, AX = 1 se DX = TAM.

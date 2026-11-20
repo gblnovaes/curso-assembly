@@ -288,7 +288,7 @@ Nos teclados de 101 teclas, as setas do bloco separado mandam um prefixo **E0h**
 
 A bola precisa de velocidades que não são números inteiros de pixels. Uma bola que sobe 1 pixel a cada 2 pixels para o lado tem inclinação 1/2; uma que sobe 1 a cada 3, inclinação 1/3. Com inteiros, só daria para ter 0, 1, 2... pixels por quadro, e os ângulos seriam poucos e feios.
 
-O 8087 da [Aula 31](aula:aula31) resolveria, mas quase nenhum PC de 1990 tinha um. A solução dos jogos era o **ponto fixo** que você viu na [Aula 30](aula:aula30): guardar todas as posições multiplicadas por uma constante. No PONG, a constante é `FRAC = 16`: os 4 bits de baixo de `bola_x` são a fração do pixel.
+O 8087 da [Aula 31](aula:aula31) resolveria, mas quase nenhum PC de 1990 tinha um. A solução dos jogos era o **ponto fixo** que você viu na [Aula 30B](aula:aula30b): guardar todas as posições multiplicadas por uma constante. No PONG, a constante é `FRAC = 16`: os 4 bits de baixo de `bola_x` são a fração do pixel.
 
 ```diagrama titulo="bola_x em ponto fixo 12.4"
    bit: 15                              4   3   2   1   0

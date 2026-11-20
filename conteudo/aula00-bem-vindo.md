@@ -205,6 +205,7 @@ O primeiro exercício é só para conhecer o editor e o verificador. Você vai a
 
 ```exercicio
 id: a00-1
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Escreva o número 42 de três jeitos
 nivel: 1
 --- enunciado
@@ -215,7 +216,9 @@ Complete o programa para que **AX**, **BX** e **CX** terminem todos valendo **42
         MOV  BX, 0      ; troque 0 por 42 em hexadecimal
         MOV  CX, 0      ; troque 0 por 42 em binário
 --- testes
-[{ "nome": "AX, BX e CX valem 42", "espera": { "AX": 42, "BX": 42, "CX": 42 } }]
+[
+ {"nome": "AX, BX e CX valem 42", "espera": {"AX": 42, "BX": 42, "CX": 42}}
+]
 --- dicas
 42 = 2 × 16 + 10. O dígito hexa que vale 10 é o A.
 42 = 32 + 8 + 2, então em 8 bits fica 00101010.
@@ -228,6 +231,7 @@ Não esqueça os sufixos: h para hexa e b para binário.
 
 ```exercicio
 id: a00-2
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Hexadecimal que começa com letra
 nivel: 1
 --- enunciado
@@ -236,7 +240,9 @@ Coloque o valor **255** em **AL** e o valor **0B800h** (o endereço da memória 
         MOV  AL, 0      ; 255 em hexadecimal
         MOV  DX, 0      ; B800 em hexadecimal
 --- testes
-[{ "nome": "AL = 255 e DX = B800h", "espera": { "AL": 255, "DX": 47104 } }]
+[
+ {"nome": "AL = 255 e DX = B800h", "espera": {"AL": 255, "DX": 47104}}
+]
 --- dicas
 255 = FFh, mas um número não pode começar com letra.
 --- solucao

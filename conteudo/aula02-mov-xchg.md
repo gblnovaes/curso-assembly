@@ -247,7 +247,10 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "destino = 1234h, backup = BEEFh", "espera": { "mem": { "destino": 4660, "backup": 48879, "origem": 4660 } } }]
+[
+ {"nome": "destino = 1234h, backup = BEEFh", "espera": {"mem": {"destino": 4660, "backup": 48879, "origem": 4660}}},
+ {"nome": "outros valores (0102h e ABCDh)", "setup": {"origem": 258, "destino": 43981}, "espera": {"mem": {"destino": 258, "backup": 43981, "origem": 258}}}
+]
 --- dicas
 MOV AX,destino / MOV backup,AX
 --- solucao
@@ -294,7 +297,10 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "valor = 3412h", "espera": { "mem": { "valor": 13330 } } }]
+[
+ {"nome": "valor = 3412h", "espera": {"mem": {"valor": 13330}}},
+ {"nome": "A0B1h vira B1A0h", "setup": {"valor": 41137}, "espera": {"mem": {"valor": 45472}}}
+]
 --- dicas
 Carregue em um registrador geral, troque as metades com XCHG e grave de volta.
 --- solucao

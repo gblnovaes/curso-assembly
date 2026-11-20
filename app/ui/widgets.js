@@ -125,6 +125,77 @@
     return box('Calculadora de FLAGS (executa na CPU simulada)', h('div.row', null, op, tam, 'A =', a, 'B =', b, h('label', null, cfIn, ' CF antes = 1')), res);
   }
 
+  // Bits lado a lado: lógica (AND, OR, XOR, NOT, TEST) e deslocamentos/rotações, executados na CPU simulada
+  function bits(p) {
+    const ops = ['AND', 'OR', 'XOR', 'NOT', 'TEST', 'SHL', 'SHR', 'SAR', 'ROL', 'ROR', 'RCL', 'RCR'];
+    const op = h('select', null, ...ops.map(o => h('option', null, o)));
+    op.value = p.op || 'AND';
+    const tam = h('select', null, h('option', { value: 8 }, '8 bits (AL)'), h('option', { value: 16 }, '16 bits (AX)'));
+    tam.value = p.bits || 8;
+    const a = h('input', { type: 'text', value: p.a !== undefined ? String(p.a) : '10110110b' });
+    const b = h('input', { type: 'text', value: p.b !== undefined ? String(p.b) : '00001111b' });
+    const rotB = h('span');
+    const cfIn = h('input', { type: 'checkbox' });
+    const res = h('div');
+    const linha = (rot, v, n, ref) => {
+      let html = '<div class="row" style="gap:.6em;align-items:center"><span style="min-width:7em">' + rot + '</span><span class="bits">';
+      for (let i = n - 1; i >= 0; i--) {
+        const bit = (v >> i) & 1;
+        const mudou = ref !== undefined && bit !== ((ref >> i) & 1);
+        html += '<span class="bit' + (bit ? ' on' : '') + (i % 4 === 3 && i !== n - 1 ? ' sep' : '') + '"' + (mudou ? ' style="outline:1px dashed var(--cE)"' : '') + ' title="bit ' + i + '">' + bit + '</span>';
+      }
+      return html + '</span><span>' + hex(v, n / 4) + 'h = ' + v + '</span></div>';
+    };
+    const calc = () => {
+      const n = +tam.value, mask = n === 8 ? 0xFF : 0xFFFF;
+      const o = op.value;
+      const desl = ['SHL', 'SHR', 'SAR', 'ROL', 'ROR', 'RCL', 'RCR'].includes(o);
+      const un = o === 'NOT';
+      rotB.textContent = desl ? 'vezes =' : 'B =';
+      b.disabled = un;
+      const A = parseNum(a.value), B = parseNum(b.value);
+      if (isNaN(A) || (!un && isNaN(B))) { res.textContent = 'Valor inválido.'; return; }
+      const ra = n === 8 ? 'AL' : 'AX', rb = n === 8 ? 'BL' : 'BX';
+      const cont = Math.max(0, Math.min(desl ? B : 0, n)) | 0;
+      let src = 'MOV ' + ra + ',' + (A & mask) + '\n';
+      if (desl) src += (cont === 1 ? '' : 'MOV CL,' + cont + '\n') + (cfIn.checked ? 'STC' : 'CLC') + '\n' + o + ' ' + ra + ',' + (cont === 1 ? '1' : 'CL');
+      else if (un) src += o + ' ' + ra;
+      else src += 'MOV ' + rb + ',' + (B & mask) + '\n' + o + ' ' + ra + ',' + rb;
+      const m = runProgram(src).machine;
+      const v = m.getReg(ra);
+      const g = (f) => m.getReg(f);
+      let html = '<pre class="asm" style="border:1px solid var(--code-frame);margin:.3em 0">' + realce(src) + '</pre>';
+      html += linha(ra + ' antes', A & mask, n);
+      if (!desl && !un) html += linha(rb, B & mask, n);
+      html += linha(ra + (o === 'TEST' ? ' (não muda)' : ' depois'), v, n, A & mask);
+      if (o === 'TEST') html += linha('AND descartado', (A & B) & mask, n);
+      html += '<div class="flags-g" style="grid-template-columns:repeat(4,auto);justify-content:start">' + ['CF', 'ZF', 'SF', 'OF'].map(f => '<span class="f' + (g(f) ? ' on' : '') + '"><span class="fn">' + f + '</span>=<span class="fv">' + g(f) + '</span></span>').join('') + '</div>';
+      const ex = {
+        AND: 'AND liga o bit só onde os dois estão ligados: serve para DESLIGAR bits (máscara com 0 onde quer apagar).',
+        OR: 'OR liga o bit onde qualquer um está ligado: serve para LIGAR bits.',
+        XOR: 'XOR liga o bit onde os dois são diferentes: serve para INVERTER bits escolhidos (e XOR AX,AX zera).',
+        NOT: 'NOT inverte todos os bits e não mexe em nenhuma flag.',
+        TEST: 'TEST faz o AND só para as flags: ZF=1 quer dizer que nenhum bit da máscara estava ligado.',
+        SHL: 'SHL empurra os bits para a esquerda: cada casa multiplica por 2. O último bit que saiu fica em CF.',
+        SHR: 'SHR empurra para a direita e entra 0 em cima: divide por 2 sem sinal. O último bit que saiu fica em CF.',
+        SAR: 'SAR empurra para a direita copiando o bit de sinal: divide por 2 com sinal (arredonda para baixo).',
+        ROL: 'ROL gira para a esquerda: o bit que sai em cima entra embaixo (e também vai para CF).',
+        ROR: 'ROR gira para a direita: o bit que sai embaixo entra em cima (e também vai para CF).',
+        RCL: 'RCL gira para a esquerda passando por CF: são ' + (n + 1) + ' bits girando (o registrador mais o CF).',
+        RCR: 'RCR gira para a direita passando por CF: são ' + (n + 1) + ' bits girando (o registrador mais o CF).'
+      }[o];
+      html += '<ul><li>' + ex + '</li>' + (desl && cont !== 1 ? '<li>No 8086, deslocar mais de uma casa exige o contador em CL.</li>' : '') + '</ul>';
+      res.innerHTML = html;
+    };
+    // ao trocar entre lógica e deslocamento, o segundo campo muda de sentido (máscara ou número de casas)
+    const ehDesl = () => ['SHL', 'SHR', 'SAR', 'ROL', 'ROR', 'RCL', 'RCR'].includes(op.value);
+    let eraDesl = ehDesl();
+    op.addEventListener('change', () => { const d = ehDesl(); if (d !== eraDesl) b.value = d ? '1' : '00001111b'; eraDesl = d; });
+    [op, tam, a, b, cfIn].forEach(e => e.addEventListener(e.tagName === 'INPUT' && e.type === 'text' ? 'input' : 'change', calc));
+    calc();
+    return box('Bits lado a lado (executa na CPU simulada)', h('div.row', null, op, tam, 'A =', a, rotB, b, h('label', null, cfIn, ' CF antes = 1')), res);
+  }
+
   // Endereço físico segmento:offset
   function endereco(p) {
     const seg = h('input', { type: 'text', value: p.seg || '1234h' });
@@ -239,7 +310,7 @@
     return box(p.titulo || 'Compare tamanho e ciclos', grid, h('div.row', null, h('button.btn', { onclick: medir }, 'Medir de novo')), res);
   }
 
-  const W = { bases, registrador, flags, endereco, pilha, complemento, comparar };
+  const W = { bases, registrador, flags, bits, endereco, pilha, complemento, comparar };
   window.Widgets = {
     criar(nome, params) {
       const f = W[nome];

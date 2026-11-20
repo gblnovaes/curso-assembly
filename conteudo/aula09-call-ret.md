@@ -210,16 +210,20 @@ titulo: Procedimento TRIPLO
 nivel: 1
 exigir: CALL
 --- enunciado
-Escreva o procedimento **TRIPLO**, que recebe um número em **AX** e devolve o triplo em **AX**, sem alterar nenhum outro registrador. O programa principal já o chama.
+Escreva o procedimento **TRIPLO**, que recebe um número em **AX** e devolve o triplo em **AX**, sem alterar nenhum outro registrador. O programa principal já o chama com o valor da variável `n` (os testes trocam esse valor).
 --- inicial
 .MODEL SMALL
 .STACK 100h
+.DATA
+n       DW 7
 .CODE
 inicio:
-        MOV  AX, 7
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  AX, n
         MOV  BX, 1234h
         CALL TRIPLO
-        MOV  DX, AX         ; DX = 21
+        MOV  DX, AX         ; DX = 3 * n
         MOV  AX, 4C00h
         INT  21h
 
@@ -229,15 +233,23 @@ TRIPLO  PROC
 TRIPLO  ENDP
 END inicio
 --- testes
-[{ "nome": "DX = 21 e BX intacto", "espera": { "DX": 21, "BX": 4660, "pilhaEquilibrada": true } }]
+[
+ {"nome": "n = 7: DX = 21 e BX intacto", "espera": {"DX": 21, "BX": 4660, "pilhaEquilibrada": true}},
+ {"nome": "n = 1000: DX = 3000", "setup": {"n": 1000}, "espera": {"DX": 3000, "BX": 4660, "pilhaEquilibrada": true}},
+ {"nome": "n = 0: DX = 0", "setup": {"n": 0}, "espera": {"DX": 0, "BX": 4660, "pilhaEquilibrada": true}}
+]
 --- dicas
 Se usar BX como rascunho, salve-o com PUSH BX no começo e restaure com POP BX antes do RET.
 --- solucao
 .MODEL SMALL
 .STACK 100h
+.DATA
+n       DW 7
 .CODE
 inicio:
-        MOV  AX, 7
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  AX, n
         MOV  BX, 1234h
         CALL TRIPLO
         MOV  DX, AX
@@ -257,6 +269,7 @@ END inicio
 
 ```exercicio
 id: a09-2
+fixo: sem entrada: conserte o programa dado
 titulo: Imprime uma linha de asteriscos
 nivel: 2
 exigir: CALL
@@ -282,7 +295,9 @@ LINHA   PROC
 LINHA   ENDP
 END inicio
 --- testes
-[{ "nome": "triângulo", "espera": { "saida": "*\n**\n***", "pilhaEquilibrada": true } }]
+[
+ {"nome": "triângulo", "espera": {"saida": "*\n**\n***", "pilhaEquilibrada": true}}
+]
 --- dicas
 INT 21h com AH = 02h imprime o caractere em DL.
 Salve AX, CX e DX na entrada; LOOP usa CX como contador.
@@ -355,7 +370,11 @@ MAXIMO  PROC
 MAXIMO  ENDP
 END inicio
 --- testes
-[{ "nome": "máximos 80 e 901", "espera": { "mem": { "ma": 80, "mb": 901 }, "pilhaEquilibrada": true } }]
+[
+ {"nome": "máximos 80 e 901", "espera": {"mem": {"ma": 80, "mb": 901}, "pilhaEquilibrada": true}},
+ {"nome": "iguais e o maior no fim", "setup": {"a": [7, 7, 7, 7], "b": [0, 0, 0, 0, 0, 65535]}, "espera": {"mem": {"ma": 7, "mb": 65535}, "pilhaEquilibrada": true}},
+ {"nome": "o maior no começo", "setup": {"a": [65535, 1, 2, 3], "b": [1, 2, 3, 4, 5, 6]}, "espera": {"mem": {"ma": 65535, "mb": 6}, "pilhaEquilibrada": true}}
+]
 --- dicas
 Salve SI e CX. Comece com AX = [SI] e compare com os demais.
 --- solucao

@@ -168,6 +168,7 @@ Não há `MOV AX, FLAGS`. Para ler ou gravar o registrador todo, use a pilha: `P
 
 ```exercicio
 id: a04-1
+fixo: sem entrada: o exercício pede um estado das flags
 titulo: Ligue CF e ZF juntas
 nivel: 1
 --- enunciado
@@ -176,7 +177,9 @@ Escreva uma soma de **8 bits** com `MOV` e `ADD` em **AL** que termine com **CF 
         MOV  AL, 0
         ADD  AL, 0
 --- testes
-[{ "nome": "CF=1, ZF=1 e AL=0", "espera": { "CF": 1, "ZF": 1, "AL": 0 } }]
+[
+ {"nome": "CF=1, ZF=1 e AL=0", "espera": {"CF": 1, "ZF": 1, "AL": 0}}
+]
 --- dicas
 Para dar zero e vai-um ao mesmo tempo, a soma precisa dar exatamente 256.
 --- solucao
@@ -186,6 +189,7 @@ Para dar zero e vai-um ao mesmo tempo, a soma precisa dar exatamente 256.
 
 ```exercicio
 id: a04-2
+fixo: sem entrada: o exercício pede um estado das flags
 titulo: Overflow sem carry
 nivel: 2
 --- enunciado
@@ -194,7 +198,9 @@ Faça uma soma de **16 bits** em **AX** que termine com **OF = 1** e **CF = 0**.
         MOV  AX, 0
         ADD  AX, 0
 --- testes
-[{ "nome": "OF=1 e CF=0", "espera": { "OF": 1, "CF": 0 } }]
+[
+ {"nome": "OF=1 e CF=0", "espera": {"OF": 1, "CF": 0}}
+]
 --- dicas
 Some dois positivos (de 0 a 7FFFh) cujo resultado passe de 7FFFh.
 --- solucao
@@ -204,6 +210,7 @@ Some dois positivos (de 0 a 7FFFh) cujo resultado passe de 7FFFh.
 
 ```exercicio
 id: a04-3
+fixo: sem entrada: o exercício pede um estado das flags
 titulo: INC preserva o carry
 nivel: 2
 --- enunciado
@@ -212,7 +219,9 @@ Prove que `INC` não mexe em CF: termine o programa com **CF = 1**, **ZF = 1** e
         MOV  BL, 0
         INC  BL
 --- testes
-[{ "nome": "CF=1, ZF=1, BL=0", "espera": { "CF": 1, "ZF": 1, "BL": 0 } }]
+[
+ {"nome": "CF=1, ZF=1, BL=0", "espera": {"CF": 1, "ZF": 1, "BL": 0}}
+]
 --- dicas
 Para INC BL dar zero, BL precisa valer FFh antes.
 CF precisa estar ligada antes do INC: STC liga CF.
@@ -224,6 +233,7 @@ CF precisa estar ligada antes do INC: STC liga CF.
 
 ```exercicio
 id: a04-4
+fixo: sem entrada: o exercício pede um estado das flags
 titulo: Sinal negativo sem overflow
 nivel: 2
 --- enunciado
@@ -232,7 +242,9 @@ Faça uma **subtração** de 8 bits em **AL** que deixe **SF = 1**, **OF = 0** e
         MOV  AL, 0
         SUB  AL, 0
 --- testes
-[{ "nome": "SF=1, OF=0, CF=1", "espera": { "SF": 1, "OF": 0, "CF": 1 } }]
+[
+ {"nome": "SF=1, OF=0, CF=1", "espera": {"SF": 1, "OF": 0, "CF": 1}}
+]
 --- dicas
 3 − 5 com sinal dá −2, que é FEh. Sem sinal, 3 < 5 pede empréstimo.
 --- solucao

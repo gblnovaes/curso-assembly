@@ -252,20 +252,23 @@ id: a10-1
 titulo: Soma de três parâmetros
 nivel: 2
 --- enunciado
-Escreva o procedimento **SOMA3(a, b, c)**, que recebe três words pela pilha e devolve **a + b + c** em **AX**, limpando os parâmetros com `RET n`. O programa principal chama SOMA3(100, 20, 3).
+Escreva o procedimento **SOMA3(a, b, c)**, que recebe três words pela pilha e devolve **a + b + c** em **AX**, limpando os parâmetros com `RET n`. O programa principal chama SOMA3(pa, pb, pc) com as variáveis `pa`, `pb` e `pc` (100, 20 e 3 no programa; os testes trocam esses valores).
 --- inicial
 .MODEL SMALL
 .STACK 100h
+.DATA
+pa      DW 100
+pb      DW 20
+pc      DW 3
 .CODE
 inicio:
-        MOV  AX, 3
-        PUSH AX             ; c
-        MOV  AX, 20
-        PUSH AX             ; b
-        MOV  AX, 100
-        PUSH AX             ; a
+        MOV  AX, @DATA
+        MOV  DS, AX
+        PUSH pc             ; c
+        PUSH pb             ; b
+        PUSH pa             ; a
         CALL SOMA3
-        MOV  DX, AX         ; DX = 123
+        MOV  DX, AX         ; DX = pa + pb + pc
         MOV  AX, 4C00h
         INT  21h
 
@@ -275,21 +278,28 @@ SOMA3   PROC
 SOMA3   ENDP
 END inicio
 --- testes
-[{ "nome": "DX = 123 e pilha equilibrada", "espera": { "DX": 123, "pilhaEquilibrada": true } }]
+[
+ {"nome": "100 + 20 + 3: DX = 123 e pilha equilibrada", "espera": {"DX": 123, "pilhaEquilibrada": true}},
+ {"nome": "1000 + 2000 + 3000", "setup": {"pa": 1000, "pb": 2000, "pc": 3000}, "espera": {"DX": 6000, "pilhaEquilibrada": true}},
+ {"nome": "1 + 0 + 0", "setup": {"pa": 1, "pb": 0, "pc": 0}, "espera": {"DX": 1, "pilhaEquilibrada": true}}
+]
 --- dicas
 a está em [BP+4], b em [BP+6] e c em [BP+8].
 São 3 words: RET 6.
 --- solucao
 .MODEL SMALL
 .STACK 100h
+.DATA
+pa      DW 100
+pb      DW 20
+pc      DW 3
 .CODE
 inicio:
-        MOV  AX, 3
-        PUSH AX
-        MOV  AX, 20
-        PUSH AX
-        MOV  AX, 100
-        PUSH AX
+        MOV  AX, @DATA
+        MOV  DS, AX
+        PUSH pc             ; c
+        PUSH pb             ; b
+        PUSH pa             ; a
         CALL SOMA3
         MOV  DX, AX
         MOV  AX, 4C00h
@@ -309,6 +319,8 @@ END inicio
 
 ```exercicio
 id: a10-2
+exigir: CALL
+fixo: sem entrada: o aluno escreve a chamada com valores fixos
 titulo: Convenção C
 nivel: 2
 --- enunciado
@@ -334,7 +346,9 @@ SUBTRAI PROC
 SUBTRAI ENDP
 END inicio
 --- testes
-[{ "nome": "DX = 42 e pilha equilibrada", "espera": { "DX": 42, "pilhaEquilibrada": true } }]
+[
+ {"nome": "DX = 42 e pilha equilibrada", "espera": {"DX": 42, "pilhaEquilibrada": true}}
+]
 --- dicas
 Empilhe b primeiro e a depois, para a ficar em [BP+4].
 Depois do CALL, ADD SP,4.

@@ -716,6 +716,7 @@ END inicio
 
 ```exercicio
 id: a23-4
+fixo: sem entrada: confere a tela ou a paleta
 titulo: Dezesseis faixas
 nivel: 2
 --- enunciado
@@ -735,7 +736,9 @@ inicio: MOV  AX, 0013h
         INT  21h
 END inicio
 --- testes
-[{ "nome": "16 faixas de 20 pixels", "espera": { "contaPixels": { "0": 4000, "1": 4000, "7": 4000, "8": 4000, "15": 4000 }, "pixel": { "0,0": 0, "19,199": 0, "20,0": 1, "39,199": 1, "159,50": 7, "160,50": 8, "300,0": 15, "319,199": 15 } } }]
+[
+ {"nome": "16 faixas de 20 pixels", "espera": {"contaPixels": {"0": 4000, "1": 4000, "7": 4000, "8": 4000, "15": 4000}, "pixel": {"0,0": 0, "19,199": 0, "20,0": 1, "39,199": 1, "159,50": 7, "160,50": 8, "300,0": 15, "319,199": 15}}}
+]
 --- dicas
 Como a memória é percorrida linha por linha, pense em uma linha de cada vez: 16 pedaços de 20 bytes, com cores 0, 1, 2... 15.
 Um laço interno de 16 voltas faz MOV CX,20 / REP STOSB / INC AL. Ele começa com AL = 0.

@@ -38,6 +38,11 @@ for (const f of todas) {
     if (b.t === 'ex') {
       const ex = b.ex;
       if (!ex.solucao) { falha(f + ' ' + ex.id + ': sem solução'); continue; }
+      // exercício "chutável": se nenhum teste muda a entrada, gravar a resposta fixa passaria.
+      // Quem é fixo de propósito declara "fixo: motivo" no cabeçalho.
+      const temEntrada = (t) => ['setup', 'entrada', 'arquivos', 'linhaComando', 'mouse', 'residente'].some(k => t[k] !== undefined);
+      if (!ex.fixo && !(ex.testes || []).some(temEntrada)) falha(f + ' ' + ex.id + ': nenhum teste varia a entrada (acrescente testes com "setup" ou declare "fixo: motivo")');
+      else ok++;
       const r = V.verificar(ex, ex.solucao);
       if (!r.ok) falha(f + ' ' + ex.id + ': a solução não passa: ' + JSON.stringify(V.mensagens(r).filter(m => m.t !== 'ok').map(m => m.msg)));
       else ok++;

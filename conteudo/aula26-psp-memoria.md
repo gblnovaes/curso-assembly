@@ -793,6 +793,7 @@ END inicio
 
 ```exercicio
 id: a26-4
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: Abrindo espaço na memória
 nivel: 3
 --- enunciado
@@ -816,7 +817,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "encolhe, mede, aloca e libera", "espera": { "mem": { "livre": 39129, "bloco": 1831 } } }]
+[
+ {"nome": "encolhe, mede, aloca e libera", "espera": {"mem": {"livre": 39129, "bloco": 1831}}}
+]
 --- dicas
 Logo depois de MOV DS,AX, ES ainda é o PSP: guarde-o em psp. Calcule BX = SP, ADD BX,15, SHR por 4 (MOV CL,4 / SHR BX,CL), some SS e subtraia psp.
 Com ES = psp e AH = 4Ah, chame a INT 21h. Depois, AH = 48h com BX = 0FFFFh: vai dar CF = 1, e BX traz o maior bloco livre.

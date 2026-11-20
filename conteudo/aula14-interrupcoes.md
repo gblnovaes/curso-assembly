@@ -362,6 +362,7 @@ END inicio
 
 ```exercicio
 id: a14-2
+fixo: sem entrada: confere a tela ou a paleta
 titulo: Estrela na posição certa
 nivel: 2
 exigir: INT
@@ -378,7 +379,9 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "* vermelho em (5,10)", "espera": { "video": { "410": ["*", 12] } } }]
+[
+ {"nome": "* vermelho em (5,10)", "espera": {"video": {"410": ["*", 12]}}}
+]
 --- dicas
 AH = 02h, BH = 0, DH = 5, DL = 10, INT 10h.
 AH = 09h, AL = '*', BH = 0, BL = 0Ch, CX = 1, INT 10h.
@@ -404,6 +407,7 @@ END inicio
 
 ```exercicio
 id: a14-3
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: O vetor de dois jeitos
 nivel: 2
 --- enunciado
@@ -425,7 +429,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "os dois jeitos dão F000:E040", "espera": { "mem": { "v_off": 57408, "v_seg": 61440, "d_off": 57408, "d_seg": 61440 } } }]
+[
+ {"nome": "os dois jeitos dão F000:E040", "espera": {"mem": {"v_off": 57408, "v_seg": 61440, "d_off": 57408, "d_seg": 61440}}}
+]
 --- dicas
 MOV AX,3510h / INT 21h devolve o vetor em ES:BX.
 O vetor 10h fica em 0000:0040 (offset) e 0000:0042 (segmento).

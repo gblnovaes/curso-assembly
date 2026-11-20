@@ -206,7 +206,10 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "AX = 33 ao chegar no fim", "espera": { "AL": 33 } }]
+[
+ {"nome": "AX = 33 ao chegar no fim", "espera": {"AL": 33}},
+ {"nome": "outro vetor: terceiro = 77", "setup": {"numeros": [5, 6, 77, 8, 9]}, "espera": {"AL": 77}}
+]
 --- dicas
 O terceiro elemento está 4 bytes depois do primeiro.
 Cuidado: MOV AH,4Ch muda AH, por isso o teste confere só AL.
@@ -251,7 +254,11 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "soma = 1425", "espera": { "mem": { "soma": 1425 } } }]
+[
+ {"nome": "soma = 1425", "espera": {"mem": {"soma": 1425}}},
+ {"nome": "1 + 2 + 3 + 4", "setup": {"v": [1, 2, 3, 4]}, "espera": {"mem": {"soma": 10}}},
+ {"nome": "1000 + 2000 + 3000 + 4000", "setup": {"v": [1000, 2000, 3000, 4000]}, "espera": {"mem": {"soma": 10000}}}
+]
 --- dicas
 LEA SI,v e depois ADD AX,[SI], ADD AX,[SI+2]...
 --- solucao
@@ -301,7 +308,11 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "DL = 8", "espera": { "DL": 8 } }]
+[
+ {"nome": "DL = 8", "espera": {"DL": 8}},
+ {"nome": "matriz invertida: DL = 2", "setup": {"m": [9, 8, 7, 6, 5, 4, 3, 2, 1]}, "espera": {"DL": 2}},
+ {"nome": "dezenas: DL = 80", "setup": {"m": [10, 20, 30, 40, 50, 60, 70, 80, 90]}, "espera": {"DL": 80}}
+]
 --- dicas
 A linha 2 começa 2 × 3 = 6 bytes depois de m.
 LEA BX,m / ADD BX,6 / MOV SI,1 / MOV DL,[BX+SI]

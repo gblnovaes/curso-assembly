@@ -10,7 +10,7 @@
     const bar = h('div.cbar', null, h('span.tt', null, b.titulo || 'Assembly 8086'),
       h('button', { onclick: () => { navigator.clipboard && navigator.clipboard.writeText(b.code); window.App.status('Código copiado.'); }, title: 'Copiar o código' }, 'Copiar'),
       (b.jogo || b.boot) ? h('button.jogar', { onclick: () => new window.Depurador.Jogador(b.code, { titulo: b.titulo || 'JOGO', arquivo: (b.titulo || 'JOGO').toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 8) + '.ASM' }), title: b.boot ? 'Liga um PC sem DOS e dá boot por este disquete, em tela grande' : 'Joga em tela grande, em tempo real, com o teclado' }, b.boot ? '▶ Dar boot' : '▶ Jogar') : null,
-      h('button', { onclick: () => window.App.abrirNoLab(b.code, { titulo: (b.titulo || ('AULA' + aula.numero)).toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 8) + '.ASM', parametros: b.parametros }), title: 'Abrir no laboratório (depurador completo)' }, 'Laboratório'),
+      h('button', { onclick: () => window.App.abrirNoLab(b.code, { titulo: (b.titulo || ('AULA' + (aula.rotulo || aula.numero))).toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 8) + '.ASM', parametros: b.parametros }), title: 'Abrir no laboratório (depurador completo)' }, 'Laboratório'),
       b.soLeitura ? null : h('button', {
         onclick: () => {
           if (mini) { mini.el.remove(); mini = null; return; }
@@ -185,7 +185,7 @@
     const mod = modulos.find(m => m.id === aula.modulo) || {};
     const el = h('div.aula');
     el.append(h('div.cab', null,
-      h('div.num', null, 'Módulo ' + aula.modulo + ' · ' + (mod.titulo || '') + ' · Aula ' + aula.numero + (aula.duracao ? ' · ' + aula.duracao : '')),
+      h('div.num', null, 'Módulo ' + aula.modulo + ' · ' + (mod.titulo || '') + ' · Aula ' + (aula.rotulo || aula.numero) + (aula.duracao ? ' · ' + aula.duracao : '')),
       h('h1', null, aula.titulo),
       aula.subtitulo ? h('div.sub', null, aula.subtitulo) : null));
     if (aula.objetivos.length) el.append(h('div.objetivos', null, h('div.tt', null, 'Nesta aula você vai:'), h('ul', { html: aula.objetivos.map(o => '<li>' + o + '</li>').join('') })));

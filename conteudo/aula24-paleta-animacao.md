@@ -603,6 +603,7 @@ Para mover um sprite sem redesenhar o cenário todo, os jogos guardavam o pedaç
 
 ```exercicio
 id: a24-1
+fixo: sem entrada: confere a tela ou a paleta
 titulo: Degradê azul
 nivel: 1
 exigir: OUT
@@ -620,7 +621,9 @@ inicio: MOV  AX, 0013h
         INT  21h
 END inicio
 --- testes
-[{ "nome": "cores 0 a 63", "espera": { "paleta": { "0": [0, 0, 0], "1": [0, 0, 1], "14": [0, 0, 14], "32": [0, 0, 32], "63": [0, 0, 63] } } }]
+[
+ {"nome": "cores 0 a 63", "espera": {"paleta": {"0": [0, 0, 0], "1": [0, 0, 1], "14": [0, 0, 14], "32": [0, 0, 32], "63": [0, 0, 63]}}}
+]
 --- dicas
 Escreva 0 na porta 3C8h (a primeira cor) e depois mande os componentes para a 3C9h, sempre por DX.
 O índice avança sozinho a cada três valores. Um laço de 64 voltas manda 0, 0 e i.
@@ -806,6 +809,7 @@ END inicio
 
 ```exercicio
 id: a24-4
+fixo: sem entrada: confere a tela ou a paleta
 titulo: Do buffer para a tela
 nivel: 2
 exigir: MOVSW|MOVSB
@@ -858,7 +862,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "o quadro aparece", "espera": { "contaPixels": { "5": 59000, "14": 5000 }, "pixel": { "0,0": 5, "319,199": 5, "100,50": 14, "199,99": 14, "200,99": 5, "100,100": 5 } } }]
+[
+ {"nome": "o quadro aparece", "espera": {"contaPixels": {"5": 59000, "14": 5000}, "pixel": {"0,0": 5, "319,199": 5, "100,50": 14, "199,99": 14, "200,99": 5, "100,100": 5}}}
+]
 --- dicas
 A origem de MOVSW é DS:SI e o destino é ES:DI. Faça DS = buffer, SI = 0, ES = A000h e DI = 0.
 Leia a variável buffer antes de trocar DS (depois da troca, as variáveis ficam inacessíveis). Guarde DS com PUSH DS antes e restaure com POP DS depois.

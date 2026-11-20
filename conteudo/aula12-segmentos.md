@@ -352,6 +352,7 @@ Na placa CGA original, se a CPU escrevesse na memória de vídeo enquanto a plac
 
 ```exercicio
 id: a12-1
+fixo: sem entrada: confere a tela ou a paleta
 titulo: OK na tela
 nivel: 1
 --- enunciado
@@ -367,7 +368,9 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "OK amarelo sobre azul em (0,0)", "espera": { "video": { "0": ["O", 30], "1": ["K", 30] } } }]
+[
+ {"nome": "OK amarelo sobre azul em (0,0)", "espera": {"video": {"0": ["O", 30], "1": ["K", 30]}}}
+]
 --- dicas
 Não existe MOV ES,0B800h. Passe por AX.
 A célula 0 está no offset 0 e a célula 1 no offset 2.
@@ -443,6 +446,7 @@ END inicio
 
 ```exercicio
 id: a12-3
+fixo: sem entrada: confere a tela ou a paleta
 titulo: Faixa colorida
 nivel: 2
 --- enunciado
@@ -461,7 +465,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "ASSEMBLY na linha 12, coluna 36", "espera": { "telaContem": "ASSEMBLY", "video": { "996": ["A", 79], "999": ["E", 79], "1003": ["Y", 79] } } }]
+[
+ {"nome": "ASSEMBLY na linha 12, coluna 36", "espera": {"telaContem": "ASSEMBLY", "video": {"996": ["A", 79], "999": ["E", 79], "1003": ["Y", 79]}}}
+]
 --- dicas
 O offset inicial é (12 × 80 + 36) × 2 = 1992.
 Coloque o atributo em AH, o caractere em AL e grave AX inteiro com MOV ES:[DI],AX.

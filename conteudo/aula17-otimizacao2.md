@@ -223,6 +223,7 @@ Os jogos usavam tabelas para tudo: seno e cosseno pré-calculados (em ponto fixo
 
 ```exercicio
 id: a17-1
+fixo: sem entrada: o teste mede ciclos de um programa fixo
 titulo: Preenchimento relâmpago
 nivel: 2
 maxCiclos: 11000
@@ -248,7 +249,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "1000 words preenchidas e guarda intacta", "espera": { "mem": { "buffer": [2573, 2573, 2573, 2573], "ultimo": 2573, "guarda": 4660 } } }]
+[
+ {"nome": "1000 words preenchidas e guarda intacta", "espera": {"mem": {"buffer": [2573, 2573, 2573, 2573], "ultimo": 2573, "guarda": 4660}}}
+]
 --- dicas
 REP STOSW grava AX em ES:[DI] CX vezes.
 Lembre de fazer ES = DS e CLD.
@@ -332,6 +335,7 @@ END inicio
 
 ```exercicio
 id: a17-3
+fixo: sem entrada: o teste mede ciclos de um programa fixo
 titulo: Um byte de diferença
 nivel: 1
 maxCiclos: 39000
@@ -353,7 +357,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "contador = 1000", "espera": { "mem": { "contador": 1000, "ativo": 1 } } }]
+[
+ {"nome": "contador = 1000", "espera": {"mem": {"contador": 1000, "ativo": 1}}}
+]
 --- dicas
 Em que endereço está contador? Veja na aba Variáveis do laboratório.
 Uma word em endereço ímpar custa 4 ciclos a mais por acesso, e INC lê e grava.

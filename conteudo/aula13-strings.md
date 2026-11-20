@@ -317,6 +317,7 @@ O 8086 original tem um defeito famoso: se uma interrupção de hardware chega no
 
 ```exercicio
 id: a13-1
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Preenchendo um buffer
 nivel: 1
 exigir: STOSB|STOSW
@@ -338,7 +339,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "64 asteriscos e guarda intacta", "espera": { "mem": { "buffer": ["*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*","*"], "guarda": "X" } } }]
+[
+ {"nome": "64 asteriscos e guarda intacta", "espera": {"mem": {"buffer": ["*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*"], "guarda": "X"}}}
+]
 --- dicas
 O destino das instruções de string é ES:DI. Faça ES = DS primeiro.
 AL = '*', DI = OFFSET buffer, CX = 64, CLD e REP STOSB.
@@ -388,7 +391,10 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "imprime a cópia", "espera": { "saida": "Assembly 8086", "mem": { "destino": ["A","s","s","e","m","b","l","y"," ","8","0","8","6","$"] } } }]
+[
+ {"nome": "imprime a cópia", "espera": {"saida": "Assembly 8086", "mem": {"destino": ["A", "s", "s", "e", "m", "b", "l", "y", " ", "8", "0", "8", "6", "$"]}}},
+ {"nome": "outra mensagem de 14 bytes", "setup": {"origem": "Curso de x86!$"}, "espera": {"saida": "Curso de x86!", "mem": {"destino": ["C", "u", "r", "s", "o", " ", "d", "e", " ", "x", "8", "6", "!", "$"]}}}
+]
 --- dicas
 Sem copiar, o destino ainda tem '?' e o programa imprime lixo até achar um '$'.
 SI = OFFSET origem, DI = OFFSET destino, CX = 14, ES = DS, CLD e REP MOVSB.

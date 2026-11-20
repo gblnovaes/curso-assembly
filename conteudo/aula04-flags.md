@@ -6,6 +6,7 @@ titulo: O registrador de FLAGS
 subtitulo: CF, ZF, SF, OF, PF, AF e as flags de controle
 duracao: 60 min
 objetivos: saber o que cada flag significa e quando ela muda; distinguir estouro sem sinal (CF) de estouro com sinal (OF); prever as flags depois de ADD, SUB, INC, DEC e operações lógicas; ligar e desligar flags com STC, CLC, CMC, STD, CLD, STI e CLI
+prerequisitos: aula03
 ---
 
 ## Um registrador feito de bits soltos
@@ -131,6 +132,11 @@ No Turbo Debugger as flags apareciam numa coluna estreita à direita: `c=0 z=1 s
 ## Lendo e gravando FLAGS inteiro
 
 Não há `MOV AX, FLAGS`. Para ler ou gravar o registrador todo, use a pilha: `PUSHF` empilha FLAGS, `POPF` desempilha. E `LAHF`/`SAHF` copiam o byte baixo de FLAGS para AH e vice-versa. Veremos a pilha no Módulo 4.
+
+```previsao titulo="Uma soma, quatro flags" perguntar="AL CF OF SF ZF"
+        MOV  AL, 7Fh
+        ADD  AL, 1
+```
 
 ```quiz
 ? Depois de MOV AL,80h e ADD AL,80h, quais flags ficam ligadas?

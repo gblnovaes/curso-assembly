@@ -6,6 +6,7 @@ titulo: Otimização 2, laços e memória
 subtitulo: LOOP contra DEC/JNZ, a fila de pré-busca, alinhamento e desenrolamento
 duracao: 75 min
 objetivos: comparar LOOP com DEC/JNZ no 8086 e saber por que a resposta mudou nos processadores seguintes; organizar saltos para que o caso comum não salte; entender a fila de pré-busca (prefetch queue) e por que código curto pode ser mais rápido; alinhar dados com EVEN; desenrolar laços; trocar laços inteiros por instruções de string
+prerequisitos: aula16
 ---
 
 ## Onde o tempo realmente vai
@@ -380,6 +381,42 @@ inicio: MOV  AX, @DATA
         MOV  AX, 4C00h
         INT  21h
 END inicio
+```
+
+## Revisão do módulo 7
+
+Antes de seguir, confira se o módulo "Otimização" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Qual é o jeito mais curto de zerar AX?
+- MOV AX, 0
++ XOR AX, AX
+- SUB AX, 1
+> XOR AX,AX ocupa 2 bytes e 3 ciclos; MOV AX,0 ocupa 3 bytes. (Mas XOR altera as flags.)
+
+? No 8086, qual multiplica AX por 4 mais depressa?
++ Duas vezes SHL AX, 1
+- MOV CL, 2 / SHL AX, CL
+- MOV BX, 4 / MUL BX
+> SHL reg,1 gasta 2 ciclos. A forma com CL gasta 8 + 4 por casa, e MUL mais de 100.
+
+? Para preencher um buffer grande com o mesmo valor, o mais rápido é:
+- Um laço com MOV [DI],AX / ADD DI,2 / LOOP
++ REP STOSW
+- Uma chamada à INT 21h
+> A instrução de string repetida dispensa a busca e a decodificação a cada volta.
+
+? Por que desenrolar um laço acelera?
++ Porque gasta menos saltos e testes de contador por elemento.
+- Porque o 8086 tem cache.
+- Porque usa menos memória.
+> O código fica maior, mas cada salto tomado custa caro no 8086.
+
+? Por onde começar a otimizar um programa?
+- Pela primeira linha.
++ Pelo laço mais interno, onde o tempo realmente vai.
+- Pelas mensagens de texto.
+> Uma instrução a menos num laço que roda 64.000 vezes vale mais que cem fora dele.
 ```
 
 :::resumo

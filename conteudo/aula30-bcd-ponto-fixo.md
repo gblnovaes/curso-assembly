@@ -6,6 +6,7 @@ titulo: BCD: contas em decimal
 subtitulo: BCD compactado e descompactado, DAA, DAS, AAA, AAS, AAM e AAD
 duracao: 50 min
 objetivos: representar números em BCD compactado e descompactado; corrigir somas e subtrações com DAA, DAS, AAA e AAS; somar números BCD de vários bytes; usar AAM para separar dígitos e AAD para preparar divisões
+prerequisitos: aula21
 ---
 
 ## Duas formas de fugir do binário puro

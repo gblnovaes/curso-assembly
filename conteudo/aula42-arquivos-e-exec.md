@@ -6,6 +6,7 @@ titulo: Arquivos e o EXEC
 subtitulo: Procurar no diretório, ler um arquivo setor a setor e carregar, rodar e encerrar um programa .COM
 duracao: 130 min
 objetivos: converter um nome como "cobra.com" para o formato de 11 bytes do diretório; procurar um arquivo no diretório com REPE CMPSB; ler um arquivo inteiro, setor a setor, para qualquer segmento; entender as funções 80h e 81h que o kernel do MINIOS oferece para o shell; carregar um .COM, montar o PSP com a linha de comando e saltar para ele com os segmentos e a pilha certos; salvar e restaurar os vetores e a pilha do pai para que um programa possa terminar e devolver o controle; comparar o EXEC do MINIOS com o do MS-DOS
+prerequisitos: aula25; aula41
 ---
 
 ## Dois serviços que faltam

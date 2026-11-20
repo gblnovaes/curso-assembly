@@ -6,6 +6,7 @@ titulo: Programas residentes (TSR)
 subtitulo: Terminar e continuar na memória com AH=31h, ganchos no timer e um relógio no canto da tela
 duracao: 100 min
 objetivos: entender o que é um programa residente e por que o DOS precisava deles; organizar um .COM com a parte residente na frente e o instalador no fim; calcular em DX quantos parágrafos ficam na memória; enganchar a INT 1Ch e encadear com a rotina antiga usando JMP DWORD PTR CS:antigo; acessar variáveis dentro da rotina com o prefixo CS:; escrever um relógio residente na memória de vídeo; liberar o bloco de ambiente; saber por que não chamar o DOS de dentro de uma interrupção; impedir que o programa seja instalado duas vezes
+prerequisitos: aula15; aula26
 ---
 
 ## Um sistema de uma tarefa só

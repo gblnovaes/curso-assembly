@@ -6,6 +6,7 @@ titulo: Aritmética: INC, DEC, ADD, SUB, ADC, SBB, MUL e DIV
 subtitulo: Somar e subtrair em 8, 16 e 32 bits, multiplicar e dividir
 duracao: 70 min
 objetivos: somar e subtrair com ADD e SUB; incrementar e decrementar com INC e DEC; entender o que acontece quando o resultado não cabe (a "volta" do contador); somar números de 32 bits com ADC e SBB; multiplicar por constantes pequenas usando só somas; multiplicar e dividir sem sinal com MUL e DIV
+prerequisitos: aula02
 ---
 
 ## ADD e SUB
@@ -146,6 +147,13 @@ Se o divisor for zero, ou se o quociente não couber no destino (por exemplo, 10
 ## NEG: trocar o sinal
 
 Para completar, `NEG destino` calcula `0 − destino`. Por enquanto, pense nela como "trocar o sinal": `NEG` de 5 dá −5. A Aula 22 explica como o 8086 representa números negativos.
+
+```previsao titulo="O contador que dá a volta" perguntar="AL BL CF"
+        MOV  AL, 250
+        ADD  AL, 10
+        MOV  BL, AL
+        INC  AL
+```
 
 ```quiz
 ? Depois de MOV AL,250 e ADD AL,10, quanto vale AL?
@@ -332,6 +340,71 @@ Zere DX antes de DIV BX. Depois, o quociente está em AX (copie para CX) e o res
         MOV  DX, 0
         DIV  BX
         MOV  CX, AX
+```
+
+## Revisão do módulo 1
+
+Antes de seguir, confira se o módulo "Registradores e aritmética" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Depois de MOV AH,12h e MOV AL,34h, quanto vale AX?
+- 3412h
++ 1234h
+- 0046h
+> AH é a metade alta e AL a baixa: AX = 12h × 256 + 34h.
+
+? Qual destas instruções o 8086 recusa?
+- MOV AX, BX
++ MOV DS, 1000h
+- MOV [BX], AL
+> Registradores de segmento não recebem número direto: passe por um registrador geral (MOV AX,1000h / MOV DS,AX).
+
+? Depois de MOV AX,0FFFFh e ADD AX,1, o que acontece?
+- AX = 10000h
++ AX = 0 e CF = 1
+- AX = FFFFh e OF = 1
+> O resultado dá a volta em 16 bits e o vai-um vai para CF.
+
+? Com DX = 0, AX = 100 e BX = 7, o que DIV BX deixa?
++ AX = 14 e DX = 2
+- AX = 2 e DX = 14
+- AX = 14 e DX = 0
+> DX:AX ÷ BX: quociente em AX, resto em DX. 7 × 14 = 98, sobram 2.
+
+? Para somar 1 ao número de 32 bits em DX:AX, a sequência certa é:
+- INC AX e depois INC DX
++ ADD AX,1 e depois ADC DX,0
+- ADC AX,1 e depois ADD DX,0
+> INC não altera CF, então não serve para a parte baixa. ADD gera o vai-um e ADC o leva para DX.
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a03-d1
+titulo: Média de três números grandes
+nivel: 3
+desafio: sim
+--- enunciado
+**AX**, **BX** e **CX** trazem três números sem sinal (de 0 a 65.535). Coloque em **SI** a média inteira dos três (a soma dividida por 3, sem as casas decimais). Cuidado: a soma pode passar de 65.535.
+--- inicial
+; SI = (AX + BX + CX) / 3
+--- testes
+[
+ { "nome": "1, 2 e 3", "setup": { "AX": 1, "BX": 2, "CX": 3 }, "espera": { "SI": 2 } },
+ { "nome": "60000 três vezes", "setup": { "AX": 60000, "BX": 60000, "CX": 60000 }, "espera": { "SI": 60000 } },
+ { "nome": "65535, 65535 e 1", "setup": { "AX": 65535, "BX": 65535, "CX": 1 }, "espera": { "SI": 43690 } },
+ { "nome": "0, 0 e 1", "setup": { "AX": 0, "BX": 0, "CX": 1, "DX": 999 }, "espera": { "SI": 0 } }
+]
+--- solucao
+        MOV  DX, 0
+        ADD  AX, BX
+        ADC  DX, 0
+        ADD  AX, CX
+        ADC  DX, 0
+        MOV  DI, 3
+        DIV  DI
+        MOV  SI, AX
 ```
 
 :::resumo

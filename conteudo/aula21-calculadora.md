@@ -6,6 +6,7 @@ titulo: Projeto, a calculadora de 32 bits
 subtitulo: MUL e DIV a fundo, aritmética de precisão múltipla e IMPRIMIR_U32
 duracao: 90 min
 objetivos: dominar as formas de 8 e 16 bits de MUL e DIV e onde ficam os resultados; evitar o "Divide overflow" verificando o divisor antes; somar, subtrair e deslocar números de 32 bits com ADC, SBB e RCL; dividir um número de 32 bits em duas etapas; imprimir números de 32 bits com IMPRIMIR_U32; montar uma calculadora completa
+prerequisitos: aula03; aula19
 ---
 
 ## MUL e DIV, a tabela completa

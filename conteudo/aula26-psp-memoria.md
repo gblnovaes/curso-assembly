@@ -6,6 +6,7 @@ titulo: PSP, linha de comando e memória
 subtitulo: O que o DOS prepara antes do seu programa e como pedir mais memória
 duracao: 90 min
 objetivos: conhecer o PSP e os seus campos mais importantes; ler os parâmetros da linha de comando em 80h e separá-los; lembrar que DS e ES apontam para o PSP no início de um .EXE e obter o PSP com AH=62h; usar a DTA e as funções 4Eh e 4Fh para listar arquivos; ler o bloco de ambiente; entender a cadeia de MCBs; encolher o programa com 4Ah e alocar e liberar memória com 48h e 49h
+prerequisitos: aula25
 ---
 
 ## O que existe antes da primeira instrução
@@ -862,6 +863,42 @@ inicio: MOV  AX, @DATA
 fim:    MOV  AX, 4C00h
         INT  21h
 END inicio
+```
+
+## Revisão do módulo 10
+
+Antes de seguir, confira se o módulo "Arquivos e o DOS por dentro" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Quando a abertura de um arquivo (AH = 3Dh) dá certo, o que volta?
++ CF = 0 e o handle em AX
+- CF = 1 e o handle em BX
+- O tamanho do arquivo em DX:AX
+> Com CF = 1, AX traz o código de erro.
+
+? Onde fica a linha de comando de um programa?
+- Em DS:0000h
++ No PSP, a partir de 81h, com o tamanho em 80h
+- No registrador SI
+> O DOS copia o que foi digitado depois do nome do programa para o PSP.
+
+? Para ler de um arquivo com AH = 3Fh, o que vai em BX, CX e DS:DX?
++ O handle, quantos bytes ler e o endereço do buffer
+- O nome, o tamanho e o modo
+- O handle, o segmento e o offset
+> E AX volta com quantos bytes foram lidos de fato (0 no fim do arquivo).
+
+? Por que um .EXE encolhe o próprio bloco (AH = 4Ah) antes de pedir memória?
+- Para rodar mais rápido.
++ Porque o DOS entrega toda a memória livre ao programa quando ele começa.
+- Porque a função 48h só funciona depois da 4Ah.
+> Sem devolver o que não usa, não sobra nada para alocar.
+
+? Quais handles já vêm abertos para todo programa?
++ 0 entrada, 1 saída e 2 erro (entre outros)
+- Só o 0
+- Nenhum
+> Por isso dá para escrever na tela com AH = 40h e BX = 1.
 ```
 
 :::resumo

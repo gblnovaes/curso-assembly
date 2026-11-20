@@ -6,6 +6,7 @@ titulo: A pilha: PUSH e POP
 subtitulo: A estrutura que faz procedimentos, interrupções e recursão funcionarem
 duracao: 50 min
 objetivos: entender a pilha como estrutura LIFO na memória; saber exatamente o que PUSH e POP fazem com SP; salvar e restaurar registradores; manter a pilha equilibrada; usar PUSHF e POPF
+prerequisitos: aula07
 ---
 
 ## Uma pilha de pratos
@@ -135,6 +136,15 @@ desempilha:
         MOV  AX, 4C00h
         INT  21h
 END inicio
+```
+
+```previsao titulo="A ordem da pilha" perguntar="AX BX"
+        MOV  AX, 1
+        MOV  BX, 2
+        PUSH AX
+        PUSH BX
+        POP  AX
+        POP  BX
 ```
 
 ```quiz

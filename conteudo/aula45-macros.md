@@ -6,6 +6,7 @@ titulo: Macros e montagem condicional
 subtitulo: Ensinando o montador a escrever código por você
 duracao: 90 min
 objetivos: entender que uma macro é uma substituição de texto feita pelo montador, antes de gerar qualquer byte; escrever macros com parâmetros e rótulos LOCAL; comparar macro e PROC em bytes e ciclos; usar &, % e <...> nos argumentos; gerar código e tabelas com REPT, IRP e IRPC; montar versões diferentes do mesmo fonte com IF, IFDEF, IFB e IFIDN
+prerequisitos: aula11
 ---
 
 ## Escrevendo a mesma coisa pela décima vez

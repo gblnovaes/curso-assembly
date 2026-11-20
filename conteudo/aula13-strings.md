@@ -6,6 +6,7 @@ titulo: Instruções de string
 subtitulo: MOVS, STOS, LODS, SCAS, CMPS e o prefixo REP
 duracao: 75 min
 objetivos: conhecer as cinco instruções de string e os registradores que elas usam; controlar a direção com CLD e STD; repetir operações com REP, REPE e REPNE; limpar a tela, copiar, medir e comparar strings em poucas instruções; entender por que REP MOVSW era o coração das rotinas rápidas dos anos 90
+prerequisitos: aula07; aula12
 ---
 
 ## Um laço em uma instrução
@@ -153,6 +154,26 @@ Se origem e destino se sobrepõem, a direção importa. Imagine deslocar uma str
 ```
 
 A regra: se o **destino está depois** da origem e eles se sobrepõem, copie **de trás para frente** com `STD`, apontando SI e DI para o **último** elemento. É exatamente o que a função `memmove` da biblioteca C faz.
+
+```previsao titulo="Para onde andam SI e DI" perguntar="CX SI DI"
+.MODEL SMALL
+.STACK 100h
+.DATA
+s       DB 'ABCDE'
+d       DB 5 DUP(0)
+.CODE
+inicio: MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  ES, AX
+        CLD
+        LEA  SI, s
+        LEA  DI, d
+        MOV  CX, 3
+        REP  MOVSB
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
 
 ```quiz
 ? Qual segmento a instrução STOSB usa para gravar?
@@ -522,6 +543,167 @@ inicio: MOV  AX, @DATA
         JNE  @@fim
         MOV  BX, 1
 @@fim:  MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
+
+```exercicio
+id: a13-5
+titulo: Conserte: a cópia que sumiu
+nivel: 2
+exigir: MOVSB|MOVSW
+--- enunciado
+**Conserte o bug.** O programa copia `origem` para `destino` com `REP MOVSB` e imprime `destino`, mas o que aparece são interrogações (ou lixo). A instrução de cópia está certa. Descubra para onde os bytes foram parar.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.DATA
+origem  DB 'Copia feita!$'
+destino DB 13 DUP('?')
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  SI, origem
+        LEA  DI, destino
+        MOV  CX, 13
+        CLD
+        REP  MOVSB
+        LEA  DX, destino
+        MOV  AH, 09h
+        INT  21h
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+--- testes
+[
+ { "nome": "imprime Copia feita!", "espera": { "saida": "Copia feita!", "mem": { "destino": ["C","o","p","i","a"," ","f","e","i","t","a","!","$"] } } },
+ { "nome": "outra mensagem", "setup": { "origem": "Outro texto!$" }, "espera": { "saida": "Outro texto!" } }
+]
+--- dicas
+MOVSB lê de DS:SI e grava em **ES**:DI. Para onde ES aponta quando um .EXE começa?
+Faça ES apontar para o segmento de dados, como DS: MOV ES, AX logo depois de MOV DS, AX.
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.DATA
+origem  DB 'Copia feita!$'
+destino DB 13 DUP('?')
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  ES, AX
+        LEA  SI, origem
+        LEA  DI, destino
+        MOV  CX, 13
+        CLD
+        REP  MOVSB
+        LEA  DX, destino
+        MOV  AH, 09h
+        INT  21h
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
+
+## Revisão do módulo 5
+
+Antes de seguir, confira se o módulo "Segmentos e strings" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Qual é o endereço físico de 1234h:0010h?
+- 1244h
++ 12350h
+- 12340h
+> Segmento × 16 + offset: 12340h + 10h = 12350h.
+
+? De onde para onde MOVSB copia?
++ De DS:SI para ES:DI
+- De ES:DI para DS:SI
+- De DS:DI para ES:SI
+> E depois avança (ou recua, com DF = 1) SI e DI.
+
+? Quando REPNE SCASB para?
+- Só quando CX chega a 0.
++ Quando acha um byte igual a AL ou quando CX chega a 0.
+- Quando acha um byte diferente de AL.
+> REPNE repete enquanto não for igual (ZF = 0) e CX não for zero. Depois, ZF diz qual dos dois aconteceu.
+
+? O que CLD garante?
++ Que SI e DI crescem a cada instrução de string.
+- Que CX é zerado.
+- Que as interrupções ficam desligadas.
+> CLD zera DF. Com STD (DF = 1), SI e DI diminuem.
+
+? Em modo texto, o que fica em B800h:0001h?
+- O segundo caractere da tela.
++ O atributo (cores) do primeiro caractere.
+- O código da tecla apertada.
+> Cada posição da tela ocupa dois bytes: o caractere e o atributo.
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a13-d1
+titulo: Contando com SCASB
+nivel: 3
+desafio: sim
+exigir: SCASB
+--- enunciado
+Conte quantas vezes o caractere `alvo` aparece nos `TAM` bytes de `texto` e grave em `conta`. Use `REPNE SCASB` para pular de uma ocorrência para a próxima, em vez de comparar byte a byte com CMP.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.DATA
+texto   DB 'abracadabra de araca'
+TAM     EQU 20
+alvo    DB 'a'
+conta   DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+
+        ; seu código aqui
+
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+--- testes
+[
+ { "nome": "'a' aparece 8 vezes", "espera": { "mem": { "conta": 8 } } },
+ { "nome": "'z' não aparece", "setup": { "alvo": "z" }, "espera": { "mem": { "conta": 0 } } },
+ { "nome": "só 'z'", "setup": { "texto": "zzzzzzzzzzzzzzzzzzzz", "alvo": "z" }, "espera": { "mem": { "conta": 20 } } },
+ { "nome": "dois espaços", "setup": { "alvo": " " }, "espera": { "mem": { "conta": 2 } } },
+ { "nome": "só no último byte", "setup": { "texto": "bbbbbbbbbbbbbbbbbbba" }, "espera": { "mem": { "conta": 1 } } }
+]
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.DATA
+texto   DB 'abracadabra de araca'
+TAM     EQU 20
+alvo    DB 'a'
+conta   DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  ES, AX
+        CLD
+        LEA  DI, texto
+        MOV  CX, TAM
+        MOV  AL, alvo
+        XOR  BX, BX
+busca:  REPNE SCASB
+        JNE  fim
+        INC  BX
+        JCXZ fim
+        JMP  busca
+fim:    MOV  conta, BX
+        MOV  AX, 4C00h
         INT  21h
 END inicio
 ```

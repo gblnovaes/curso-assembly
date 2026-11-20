@@ -41,6 +41,36 @@
     return wrap;
   }
 
+  // "Preveja antes de executar": o aluno escreve os valores; a resposta vem de rodar o código
+  const FLAGS1 = ['CF', 'ZF', 'SF', 'OF', 'PF', 'AF', 'DF', 'IF', 'TF'];
+  function blocoPrevisao(b, aula) {
+    const M = window.Machine8086, Asm = window.Asm8086;
+    const ler = (s) => { s = String(s).trim(); if (!s) return NaN; if (/^'.'$/.test(s)) return s.charCodeAt(1); try { return /^-?\d+$/.test(s) ? parseInt(s, 10) : Asm.parseNumber(s); } catch (e) { return NaN; } };
+    const bits = (r) => FLAGS1.includes(r) ? 1 : /^[A-D][HL]$/.test(r) ? 8 : 16;
+    const fmt = (r, v) => bits(r) === 1 ? String(v) : (v.toString(16).toUpperCase().padStart(bits(r) / 4, '0') + 'h = ' + v);
+    const campos = b.perguntar.map(r => [r, h('input', { type: 'text', size: 8, placeholder: FLAGS1.includes(r) ? '0 ou 1' : 'valor', title: 'Decimal (42), hexadecimal (2Ah) ou binário (101010b)' })]);
+    const res = h('div.resultado');
+    let tentativas = 0;
+    const conferir = () => {
+      const m = M.runProgram(b.code).machine;
+      tentativas++;
+      res.innerHTML = '';
+      let acertos = 0;
+      for (const [r, inp] of campos) {
+        const certo = m.getReg(r), mask = bits(r) === 1 ? 1 : bits(r) === 8 ? 0xFF : 0xFFFF;
+        const v = ler(inp.value);
+        const ok = !isNaN(v) && (v & mask) === certo;
+        if (ok) acertos++;
+        res.append(h('div', { class: ok ? 'r-ok' : 'r-bad' }, (ok ? '√ ' : 'x ') + r + (ok ? ' = ' + fmt(r, certo) : isNaN(v) ? ': escreva um valor' : tentativas < 2 ? ': ainda não. Releia o código e tente de novo.' : ': o certo é ' + fmt(r, certo) + '.')));
+      }
+      if (acertos === campos.length) { res.append(h('div', null, 'Tudo certo! Confira passo a passo com ▶ Executar aqui se quiser ver cada mudança.')); som.bip(1200, 90); }
+      else som.bip(220, 200);
+    };
+    const codigo = blocoCodigo({ code: b.code, titulo: b.titulo || 'Preveja antes de executar' }, aula);
+    return h('div.widget.previsao', null, h('div.wt', null, '■ Preveja antes de executar: quanto valem ' + b.perguntar.join(', ') + ' no fim?'), codigo,
+      h('div.row', null, ...campos.flatMap(([r, inp]) => [r + ' =', inp]), h('button.btn', { onclick: conferir }, '√ Conferir')), res);
+  }
+
   function blocoQuiz(b, aula, idx) {
     const key = aula.id + ':q' + idx;
     const salvo = store.get('quiz', {})[key] || {};
@@ -121,7 +151,7 @@
       som.bip(r.ok ? 1200 : 220, r.ok ? 90 : 200);
     };
     const el = h('div.exercicio', null,
-      h('div.et', null, h('span', null, '■ Exercício ' + ex.id.replace(/^.*?-/, '') + ': ' + ex.titulo), h('span.nivel', null, '★'.repeat(ex.nivel || 1) + '☆'.repeat(3 - (ex.nivel || 1))), badge),
+      h('div.et', null, h('span', null, (ex.desafio ? '■ Desafio do módulo (sem dicas): ' : '■ Exercício ' + ex.id.replace(/^.*?-/, '') + ': ') + ex.titulo), h('span.nivel', null, '★'.repeat(ex.nivel || 1) + '☆'.repeat(3 - (ex.nivel || 1))), badge),
       h('div', { html: ex.enunciado || '' }),
       regras.length ? h('div.regras', null, 'Regras: ' + regras.join('; ') + '.') : null,
       ed.el,
@@ -168,6 +198,7 @@
         case 'quiz': el.append(blocoQuiz(b, aula, qi++)); break;
         case 'ex': el.append(blocoExercicio(b, aula)); break;
         case 'widget': el.append(window.Widgets.criar(b.nome, b.params)); break;
+        case 'previsao': el.append(blocoPrevisao(b, aula)); break;
         case 'diagrama':
           if (b.titulo) el.append(h('div.diag-t', null, b.titulo));
           el.append(h('pre.diag', null, b.text)); break;
@@ -189,6 +220,13 @@
       h('h1', null, aula.titulo),
       aula.subtitulo ? h('div.sub', null, aula.subtitulo) : null));
     if (aula.objetivos.length) el.append(h('div.objetivos', null, h('div.tt', null, 'Nesta aula você vai:'), h('ul', { html: aula.objetivos.map(o => '<li>' + o + '</li>').join('') })));
+    if (aula.prerequisitos && aula.prerequisitos.length) {
+      const todas = (window.CURSO_CONTEUDO || {}).aulas || [];
+      const prog = window.App && window.App.progressoAula;
+      const itens = aula.prerequisitos.map(id => todas.find(x => x.id === id)).filter(Boolean).map(a =>
+        '<li><a href="#aula/' + a.id + '">Aula ' + (a.rotulo || a.numero) + ': ' + a.titulo + '</a>' + (prog && prog(a).concluida ? ' √' : '') + '</li>');
+      if (itens.length) el.append(h('div.objetivos.prereq', null, h('div.tt', null, 'Antes desta aula, é bom ter feito:'), h('ul', { html: itens.join('') })));
+    }
     renderBlocos(el, aula, aula.blocks);
     return el;
   }

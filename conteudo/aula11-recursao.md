@@ -6,6 +6,7 @@ titulo: Recursão e programas DOS completos
 subtitulo: Procedimentos que chamam a si mesmos e a sua própria biblioteca de rotinas
 duracao: 70 min
 objetivos: entender como a pilha torna a recursão possível; escrever fatorial e potência recursivos; medir quanto de pilha uma recursão consome; imprimir números decimais com IMPRIMIR_NUMERO; organizar um programa DOS completo com procedimentos reutilizáveis e código de saída
+prerequisitos: aula10
 ---
 
 ## Um procedimento que chama a si mesmo
@@ -593,6 +594,121 @@ POTENCIA PROC
 @@base: MOV  AX, 1
         RET
 POTENCIA ENDP
+END inicio
+```
+
+## Revisão do módulo 4
+
+Antes de seguir, confira se o módulo "Pilha e procedimentos" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Depois de PUSH AX, PUSH BX e POP AX, o que fica em AX?
+- O valor antigo de AX
++ O valor de BX
+- Zero
+> A pilha devolve primeiro o último que entrou: o valor de BX.
+
+? Num procedimento NEAR que começa com PUSH BP / MOV BP,SP, onde está o último parâmetro empilhado?
+- [BP+2]
++ [BP+4]
+- [BP-2]
+> [BP] é o BP salvo, [BP+2] o endereço de retorno e [BP+4] o último parâmetro empilhado.
+
+? O que RET 6 faz?
+- Volta 6 instruções.
++ Volta e soma 6 a SP, descartando 3 parâmetros word.
+- Volta e empilha 6 bytes.
+> É a convenção Pascal: quem é chamado limpa os parâmetros.
+
+? Na convenção C, quem tira os parâmetros da pilha?
++ Quem chamou, com ADD SP, n depois do CALL.
+- O procedimento, com RET n.
+- Ninguém: o DOS limpa no fim.
+> Por isso o C aceita funções com número variável de parâmetros, como printf.
+
+? O que acontece com uma recursão sem caso base?
+- O programa termina normalmente.
++ A pilha cresce até estourar e sobrescrever outros dados.
+- O 8086 detecta e para com uma mensagem.
+> Cada chamada empilha retorno e parâmetros. O 8086 não verifica limite de pilha.
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a11-d1
+titulo: Fibonacci recursivo
+nivel: 3
+desafio: sim
+exigir: CALL
+--- enunciado
+Escreva o procedimento **FIB(n)**: recebe **n** (de 0 a 20) pela pilha e devolve em **AX** o n-ésimo número de Fibonacci (FIB(0) = 0, FIB(1) = 1, FIB(n) = FIB(n−1) + FIB(n−2)). Ele limpa o parâmetro com `RET 2`, preserva todos os registradores menos AX e deve chamar a si mesmo. O programa principal já chama FIB(n) com a variável `n`.
+--- inicial
+.MODEL SMALL
+.STACK 400h
+.DATA
+n       DW 10
+res     DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  BX, 1234h
+        PUSH n
+        CALL FIB
+        MOV  res, AX
+        MOV  AX, 4C00h
+        INT  21h
+
+FIB     PROC
+        ; seu código aqui
+        RET  2
+FIB     ENDP
+END inicio
+--- testes
+[
+ { "nome": "FIB(10) = 55", "espera": { "mem": { "res": 55 }, "BX": 4660, "pilhaEquilibrada": true } },
+ { "nome": "FIB(0) = 0", "setup": { "n": 0 }, "espera": { "mem": { "res": 0 }, "BX": 4660, "pilhaEquilibrada": true } },
+ { "nome": "FIB(1) = 1", "setup": { "n": 1 }, "espera": { "mem": { "res": 1 }, "BX": 4660, "pilhaEquilibrada": true } },
+ { "nome": "FIB(20) = 6765", "setup": { "n": 20 }, "espera": { "mem": { "res": 6765 }, "BX": 4660, "pilhaEquilibrada": true } }
+]
+--- solucao
+.MODEL SMALL
+.STACK 400h
+.DATA
+n       DW 10
+res     DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        MOV  BX, 1234h
+        PUSH n
+        CALL FIB
+        MOV  res, AX
+        MOV  AX, 4C00h
+        INT  21h
+
+FIB     PROC
+        PUSH BP
+        MOV  BP, SP
+        PUSH BX
+        MOV  AX, [BP+4]
+        CMP  AX, 2
+        JB   fim
+        DEC  AX
+        PUSH AX
+        CALL FIB
+        MOV  BX, AX
+        MOV  AX, [BP+4]
+        SUB  AX, 2
+        PUSH AX
+        CALL FIB
+        ADD  AX, BX
+fim:    POP  BX
+        POP  BP
+        RET  2
+FIB     ENDP
 END inicio
 ```
 

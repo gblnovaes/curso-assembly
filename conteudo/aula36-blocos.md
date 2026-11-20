@@ -6,6 +6,7 @@ titulo: Blocos que caem
 subtitulo: Peças de 16 bits, rotação com empurrão, linhas cheias, cópia para trás e placar de 32 bits
 duracao: 140 min
 objetivos: conhecer a história do Tetris e por que ele pegou o mundo; guardar cada peça numa word, como uma grade 4 × 4 de bits; testar se uma peça cabe no poço percorrendo os bits com SHL e o carry; girar a peça e empurrá-la para os lados quando ela bate na parede; achar linhas cheias e removê-las com uma cópia de trás para a frente (STD e REP MOVSB); contar pontos em 32 bits com ADD e ADC e imprimi-los com duas divisões; controlar a velocidade pelos tiques da BIOS e por uma tabela de níveis; desenhar o jogo em modo texto com células de duas colunas
+prerequisitos: aula33
 ---
 
 ## Um programador, um computador soviético e cinco quadrados

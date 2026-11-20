@@ -59,6 +59,17 @@ END inicio
 - `jogo`: mostra o botão "▶ Jogar", que abre o programa em tela grande, em tempo real e com o teclado de verdade. O teste roda cada bloco `jogo` por 400 mil instruções (com o timer ligado) e falha se der erro.
 - `boot`: o bloco é um disquete. O botão "▶ Dar boot" liga um PC **sem DOS**, a BIOS lê o setor 0 para 0000:7C00 e salta para ele com DL = 0. Também é rodado pelo teste.
 
+### Preveja antes de executar
+
+````
+```previsao titulo="Um laço com JG" perguntar="AX BX"
+        MOV  AX, 10
+        ...
+```
+````
+
+Mostra o código e um campo para cada registrador ou flag de `perguntar`. O aluno escreve o valor que espera no fim e clica em Conferir. A resposta **não é escrita na aula**: o app roda o código no simulador e compara, então ela nunca fica errada. Aceita decimal, negativo (`-2`), hexadecimal (`0FFh`), binário (`101b`) e caractere (`'A'`). O teste confere que o código roda até o fim.
+
 ### Setor de boot e disquete
 
 Um programa cujo primeiro segmento tem `ORG 7C00h` e termina exatamente em 512 bytes com `ORG 7DFEh` / `DW 0AA55h` é um setor de boot. Os segmentos seguintes vão para os setores seguintes do disquete (1,44 MB: 18 setores por trilha, 2 cabeças), e a INT 13h (AH=02h) lê esses setores. Sem DOS, a INT 21h não existe até que o próprio programa instale uma; `HLT` espera a próxima interrupção e `CLI` + `HLT` desliga a máquina.
@@ -173,6 +184,8 @@ Cabeçalho do exercício:
 - `maxBytes`: tamanho máximo do código, em bytes.
 - `maxCiclos`: ciclos máximos em cada teste.
 - `maxPassos`: limite de instruções antes de considerar laço infinito (padrão 3.000.000).
+- `desafio: sim`: mostra o exercício como "Desafio do módulo (sem dicas)". O teste falha se um desafio tiver dicas. Cada módulo do curso base termina com uma seção `## Revisão do módulo N` (quiz que mistura as aulas do módulo) e, em vários módulos, um desafio.
+- `prerequisitos` (no cabeçalho da **aula**, não do exercício): ids separados por ponto e vírgula, mostrados no topo da aula como links. O teste confere que existem e vêm antes.
 - `fixo: motivo`: declara que o exercício não tem entrada de propósito (um estado de flags, uma tela, um programa para consertar). Sem essa linha, `npm test` exige que **pelo menos um teste mude a entrada** (com `setup`, `entrada`, `arquivos`, `linhaComando`, `mouse` ou `residente`); senão gravar a resposta pronta, como `MOV conta, 5`, passaria. Para variar dados fixos do programa, troque as variáveis no `setup` de um segundo teste.
 - `timer: sim`: liga a interrupção do timer (IRQ 0 a cada 3.000 instruções; muda proporcionalmente se o programa reprogramar o canal 0 do PIT).
 

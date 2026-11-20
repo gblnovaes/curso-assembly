@@ -6,6 +6,7 @@ titulo: Labirinto, o comilão e os quatro fantasmas
 subtitulo: Pac-Man em modo texto - mapa em bytes, inteligência por alvos, modos dispersar, perseguir e medo
 duracao: 110 min
 objetivos: entender as regras do Pac-Man de 1980 e o comportamento dos fantasmas; guardar o labirinto como um vetor de bytes e andar nele com tabelas de direção; implementar o túnel e a porta da casinha numa só rotina; escolher a direção de um fantasma pela menor distância até um alvo; dar personalidade a cada fantasma só trocando o alvo; controlar os modos dispersar, perseguir e medo com contadores de quadros; ver como os sete jogos do módulo compartilham as mesmas técnicas
+prerequisitos: aula33
 ---
 
 ## O último jogo do módulo

@@ -201,6 +201,12 @@ function parseLesson(file, texto) {
       else if (kind === 'quiz') blocks.push({ t: 'quiz', qs: parseQuiz(text, file) });
       else if (kind === 'exercicio') blocks.push({ t: 'ex', ex: parseExercise(text, file) });
       else if (kind === 'widget') blocks.push({ t: 'widget', nome: info.split(/\s+/)[0], params: text.trim() ? JSON.parse(text) : {} });
+      else if (kind === 'previsao') {
+        // "preveja antes de executar": a resposta é calculada rodando o código, nunca escrita à mão
+        const perguntar = (attrs.perguntar || '').split(/[ ,]+/).filter(Boolean).map(s => s.toUpperCase());
+        if (!perguntar.length) throw new Error(file + ': bloco previsao sem perguntar="..."');
+        blocks.push({ t: 'previsao', code: text, titulo: attrs.titulo || '', perguntar });
+      }
       else if (kind === 'diagrama' || kind === 'texto') blocks.push({ t: 'diagrama', text, titulo: attrs.titulo || '' });
       else throw new Error(file + ': bloco desconhecido ```' + kind);
       continue;
@@ -219,7 +225,7 @@ function parseLesson(file, texto) {
   const objetivos = (meta.objetivos || '').split(';').map(s => s.trim()).filter(Boolean).map(inline);
   return {
     id: meta.id, numero: +meta.numero, rotulo: meta.rotulo || String(+meta.numero), modulo: +meta.modulo, titulo: meta.titulo, subtitulo: meta.subtitulo || '',
-    duracao: meta.duracao || '', objetivos, blocks,
+    duracao: meta.duracao || '', objetivos, prerequisitos: (meta.prerequisitos || '').split(';').map(s => s.trim()).filter(Boolean), blocks,
     secoes: blocks.filter(b => b.t === 'html').flatMap(b => [...b.html.matchAll(/<h2 id="([^"]+)">(.*?)<\/h2>/g)].map(m => ({ id: m[1], titulo: m[2].replace(/<[^>]+>/g, '') })))
   };
 }

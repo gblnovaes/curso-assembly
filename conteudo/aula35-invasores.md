@@ -6,6 +6,7 @@ titulo: Invasores do espaço
 subtitulo: Sprites de 1 bit, uma formação de 55 que acelera, colisão pela cor do pixel e escudos que se desgastam
 duracao: 150 min
 objetivos: entender as regras e a história do Space Invaders e por que ele foi feito do jeito que foi; guardar desenhos com 1 bit por pixel e desenhá-los em qualquer cor com uma rotina só; organizar 55 inimigos com um vetor de "vivos" e um canto de referência em vez de 55 posições; fazer a formação acelerar quando os invasores morrem; descobrir em que o tiro bateu lendo a cor do pixel na memória de vídeo; transformar uma posição na tela no índice do invasor atingido; manter vários objetos (3 bombas, disco, explosão) em vagas fixas; desgastar escudos apagando só os pixels da cor deles; montar o placar e as telas com a BIOS no modo 13h
+prerequisitos: aula34
 ---
 
 ## O jogo que esvaziou os fliperamas de tudo o resto

@@ -6,6 +6,7 @@ titulo: Estruturas: STRUC e campos
 subtitulo: Registros com nome, como o struct do C e o record do Pascal
 duracao: 75 min
 objetivos: declarar uma estrutura com STRUC e entender que cada campo é só um deslocamento; criar variáveis e vetores de estruturas com valores padrão e valores próprios; acessar campos com var.campo, [BX].campo e [BX+ESTRUT.campo]; usar SIZE e TYPE para andar num vetor de estruturas; descrever com STRUC as estruturas do DOS, como o PSP e a DTA
+prerequisitos: aula45
 ---
 
 ## Dados que andam juntos

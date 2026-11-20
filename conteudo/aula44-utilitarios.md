@@ -6,6 +6,7 @@ titulo: Utilitários e o disquete completo do MINIOS
 subtitulo: INFO, TECLAS e SETOR conversam com a BIOS; depois, o disquete inteiro com boot, kernel, shell, utilitários e os sete jogos
 duracao: 120 min
 objetivos: perguntar à BIOS o que existe no PC com as INT 11h, 12h e 10h/0Fh e lendo a ROM em F000:FFF5 e F000:FFFE; descobrir se o programa roda no DOS ou no MINIOS pela função 30h; mostrar o scan code, o ASCII e o estado das teclas de controle com a INT 16h; ler um número da linha de comando no PSP e converter LBA em cilindro, cabeça e setor; ler um setor com a INT 13h e mostrá-lo em hexadecimal e texto; montar o disquete completo do MINIOS a partir dos blocos das outras aulas e entender o mapa dele setor a setor; levar a imagem para o DOSBox, o 86Box, o QEMU ou um disquete de verdade; saber o que falta para o MINIOS virar um DOS
+prerequisitos: aula43
 ---
 
 ## Os programas que vêm no disquete

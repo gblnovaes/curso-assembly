@@ -6,6 +6,7 @@ titulo: Rotinas de interrupção e o timer
 subtitulo: IRQs, o controlador 8259A, EOI e ganchos na INT 1Ch
 duracao: 80 min
 objetivos: entender como os dispositivos interrompem a CPU pelas linhas IRQ e pelo controlador 8259A; escrever rotinas de interrupção (ISR) que preservam todos os registradores e terminam com IRET; instalar e restaurar vetores com AH=25h e AH=35h; enganchar o timer pela INT 1Ch; mandar o EOI ao escrever uma rotina de hardware; criar o seu próprio serviço de interrupção
+prerequisitos: aula14
 ---
 
 ## Quando o hardware chama você
@@ -581,6 +582,42 @@ MAIUSC  PROC FAR
 @@fim:  IRET
 MAIUSC  ENDP
 END inicio
+```
+
+## Revisão do módulo 6
+
+Antes de seguir, confira se o módulo "Interrupções" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Em que endereço físico fica o vetor da INT 21h na IVT?
+- 21h
++ 84h
+- 2100h
+> Cada vetor ocupa 4 bytes (offset e segmento): 21h × 4 = 84h.
+
+? O que IRET desempilha?
+- Só IP
+- IP e CS
++ IP, CS e FLAGS
+> INT empilha FLAGS, CS e IP; IRET desfaz tudo, inclusive as flags.
+
+? O que uma rotina de IRQ de hardware precisa fazer antes do IRET?
++ Avisar o fim ao PIC: MOV AL,20h / OUT 20h,AL.
+- Chamar INT 21h.
+- Zerar todos os registradores.
+> Sem o EOI, o 8259 não manda mais interrupções daquele nível ou de nível menor.
+
+? Quantas vezes por segundo a INT 1Ch é chamada, com o timer padrão?
+- 1.000
++ Cerca de 18,2
+- 60
+> A rotina da INT 08h chama a 1Ch a cada tique: 1.193.182 ÷ 65.536 ≈ 18,2 Hz.
+
+? Por que guardar o vetor antigo antes de instalar uma rotina?
+- Porque o DOS exige.
++ Para restaurá-lo ao sair e, se for o caso, encadear para a rotina antiga.
+- Porque a IVT só aceita um valor por vez.
+> Sair sem restaurar deixa o vetor apontando para memória que vai ser reaproveitada.
 ```
 
 :::resumo

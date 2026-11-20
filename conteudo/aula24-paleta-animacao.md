@@ -6,6 +6,7 @@ titulo: Paleta, retraço e animação
 subtitulo: o DAC da VGA, o retraço vertical, double buffer e sprites
 duracao: 100 min
 objetivos: trocar as 256 cores da paleta pelas portas 3C8h e 3C9h e ler cores pela 3C7h; usar as funções de paleta da INT 10h; montar degradês; animar a tela girando a paleta; sincronizar o desenho com o retraço vertical pela porta 3DAh; desenhar fora da tela num buffer e copiá-lo com REP MOVSW (double buffer); desenhar sprites com cor transparente
+prerequisitos: aula23
 ---
 
 ## A paleta: 256 cores escolhidas entre 262.144
@@ -922,6 +923,42 @@ inicio: MOV  AX, @DATA
         MOV  AX, 4C00h
         INT  21h
 END inicio
+```
+
+## Revisão do módulo 9
+
+Antes de seguir, confira se o módulo "Gráficos VGA e modo 13h" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? No modo 13h, em que offset fica o pixel (x, y)?
+- x × 320 + y
++ y × 320 + x
+- y × 200 + x
+> Cada linha tem 320 bytes, um por pixel.
+
+? Qual segmento guarda a tela do modo 13h?
++ A000h
+- B800h
+- 0040h
+> B800h é a tela de texto colorida; 0040h é a área de dados da BIOS.
+
+? Como se muda a cor 5 da paleta?
+- MOV AL,5 / INT 10h
++ OUT 3C8h com o índice 5, depois três OUT 3C9h com R, G e B (0 a 63).
+- Gravando em A000h:0005h.
+> O DAC da VGA recebe o índice e depois as três intensidades de 6 bits.
+
+? Por que esperar o retraço vertical antes de desenhar?
+- Para economizar memória.
++ Para mudar a tela enquanto o feixe não está desenhando, sem cintilação nem cortes.
+- Porque a VGA só aceita escritas nesse momento.
+> A porta 3DAh, bit 3, avisa quando o retraço começa.
+
+? Para que serve desenhar num buffer e copiar para a tela?
++ Para o jogador nunca ver o quadro pela metade.
+- Para usar mais cores.
+- Para dispensar o modo 13h.
+> É o double buffering: monta-se o quadro inteiro fora da tela e copia-se de uma vez.
 ```
 
 :::resumo

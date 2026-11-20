@@ -6,6 +6,7 @@ titulo: Otimização 1, contando ciclos e bytes
 subtitulo: A arte de fazer o mesmo com menos, como nos tempos do XT
 duracao: 75 min
 objetivos: medir o custo de uma instrução em ciclos e em bytes; ler a tabela de ciclos do 8086, incluindo o cálculo do endereço efetivo (EA); conhecer os idiomas clássicos (XOR para zerar, TEST para comparar com zero, formas curtas do acumulador); trocar MUL e DIV por deslocamentos e somas; usar LEA para fazer contas; saber quando otimizar e quando não vale a pena
+prerequisitos: aula05b; aula15
 ---
 
 ## Por que contar ciclos

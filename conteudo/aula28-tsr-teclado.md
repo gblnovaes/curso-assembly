@@ -6,6 +6,7 @@ titulo: O teclado por dentro e TSRs com tecla de atalho
 subtitulo: Scan codes na porta 60h, a INT 9, o buffer da BIOS, teclas de atalho e desinstalação
 duracao: 100 min
 objetivos: entender o caminho de uma tecla do teclado até a INT 16h; distinguir o código de aperto (make) do código de soltura (break); ler o scan code na porta 60h; enganchar a INT 9 encadeando com a BIOS; consumir uma tecla de atalho mandando o EOI você mesmo; escrever um TSR ativado por tecla; desinstalar um TSR com segurança
+prerequisitos: aula27
 ---
 
 ## O caminho de uma tecla
@@ -655,6 +656,42 @@ instalar:
         SHR  DX, CL
         MOV  AX, 3100h
         INT  21h
+```
+
+## Revisão do módulo 11
+
+Antes de seguir, confira se o módulo "Programas residentes (TSR)" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Como um programa termina e fica residente?
+- INT 20h
++ INT 21h com AH = 31h e DX = número de parágrafos a manter
+- INT 21h com AH = 4Ch
+> DX conta parágrafos de 16 bytes a partir do PSP.
+
+? Por que um TSR de teclado encadeia para a INT 9 antiga?
++ Para a BIOS continuar tratando as teclas e enchendo o buffer.
+- Porque a IVT exige.
+- Para economizar memória.
+> O TSR olha a tecla que quer e deixa o resto para quem já fazia o trabalho.
+
+? O que a porta 60h entrega?
+- O código ASCII da tecla
++ O scan code da tecla apertada ou solta
+- O estado do Caps Lock
+> O ASCII é calculado depois pela BIOS, a partir do scan code.
+
+? Como se reconhece o scan code de uma tecla solta?
+- Ele é 0.
++ Ele é o scan code do aperto com o bit 7 ligado (+ 80h).
+- Ele vem pela porta 61h.
+> Esc apertada é 01h; Esc solta é 81h.
+
+? Como um TSR evita se instalar duas vezes?
+- Procurando o próprio nome no disco.
++ Respondendo a uma pergunta pela INT 2Fh (multiplex) com um número próprio.
+- Olhando o registrador DX.
+> O instalador pergunta antes; se alguém responder, o TSR já está na memória.
 ```
 
 :::resumo

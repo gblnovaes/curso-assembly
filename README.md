@@ -6,8 +6,8 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  96 aulas · 299 exercícios corrigidos automaticamente        ║
-║  445 perguntas de quiz · 7 jogos · um sistema operacional    ║
+║  98 aulas · 315 exercícios corrigidos automaticamente        ║
+║  513 perguntas de quiz · 7 jogos · um sistema operacional    ║
 ║  8086 em MASM/TASM · trilha avançada 386 em NASM             ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -73,7 +73,7 @@ A trilha avançada tem o seu próprio par, também do zero e separado do simulad
 | 5. Segmentos e strings | 12. Segmentos a fundo · 13. Instruções de string |
 | 6. Interrupções | 14. Interrupções, IVT, DOS e BIOS · 15. Rotinas de interrupção e o timer |
 | 7. Otimização | 16. Contando ciclos e bytes · 17. Laços e memória |
-| 8. Projetos, depuração e aritmética com sinal | 18. Analisador de vetores · 19. Menus e entrada de dados · 20. Depuração · 21. Calculadora de 32 bits · 22. Aritmética com sinal · 22B. Aritmética com sinal na prática |
+| 8. Projetos, depuração e aritmética com sinal | 18. Analisador de vetores · 18B. Algoritmos clássicos · 18C. Fila circular e lista ligada · 19. Menus e entrada de dados · 20. Depuração · 21. Calculadora de 32 bits · 22. Aritmética com sinal · 22B. Aritmética com sinal na prática |
 | 9. Gráficos VGA e modo 13h | 23. O modo gráfico 13h · 24. Paleta, retraço e animação |
 | 10. Arquivos e o DOS por dentro | 25. Arquivos com handles · 26. PSP, linha de comando e memória |
 | 11. Programas residentes (TSR) | 27. Programas residentes · 28. O teclado por dentro e TSRs com tecla de atalho |
@@ -82,7 +82,7 @@ A trilha avançada tem o seu próprio par, também do zero e separado do simulad
 | 14. Construindo um sistema operacional | 40. Do botão de ligar ao setor de boot · 41. O kernel e a sua própria INT 21h · 42. Arquivos e o EXEC · 43. O shell do MINIOS · 44. Utilitários e o disquete completo do MINIOS |
 | 15. Macros, estruturas e mouse | 45. Macros e montagem condicional · 46. Estruturas: STRUC e campos · 47. O mouse: a INT 33h (com um programa de pintura) |
 
-As aulas com letra (5B, 22B, 30B e 31B) foram encaixadas depois, sem mudar a numeração das demais. O progresso salvo continua valendo.
+As aulas com letra (5B, 18B, 18C, 22B, 30B e 31B) foram encaixadas depois, sem mudar a numeração das demais. O progresso salvo continua valendo.
 
 Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA-ME.md).
 
@@ -152,6 +152,8 @@ npm test            # testa os montadores, os simuladores, todas as aulas e o li
 ```
 
 O `npm test` roda, em ordem: `tests/core.test.js` (montador e simulador do 8086), `tests/conteudo.test.js` (aulas e livro), `tests/avancado.test.js` (aulas da trilha avançada), `tests/nasm.test.js` (o montador NASM contra a saída gravada do NASM real) e `tests/cpu386.test.js` (a máquina 386 contra a saída gravada do Bochs). Para checar uma aula só: `node tests/conteudo.test.js aula33`.
+
+A interface tem um teste de fumaça à parte, que abre o app num Chromium de verdade (abre todas as aulas, executa um exemplo, resolve um exercício, usa a busca, o simulador de bits, o "preveja antes de executar", o visual moderno e a migração do progresso): `npm run test:ui`. Ele precisa do pacote `playwright` e de um Chromium (`npm i -D playwright && npx playwright install chromium`) e não faz parte do `npm test`.
 
 Quem mexer na máquina 386 pode comparar com os emuladores de verdade (precisa de `nasm`, `bochs` e `qemu-system-i386`): `node tools/cenarios386.js` roda os cenários de `tests/cenarios386/` nos três, `--gravar` atualiza os `.esperado`, e `node tools/difer386.js` sorteia instruções e compara o resultado com o QEMU.
 

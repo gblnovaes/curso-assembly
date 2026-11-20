@@ -6,6 +6,7 @@ titulo: MOV e XCHG a fundo
 subtitulo: Copiar e trocar valores entre registradores, memória e imediatos
 duracao: 50 min
 objetivos: conhecer todas as combinações válidas de MOV; entender por que algumas combinações não existem; declarar variáveis com DB e DW e usá-las com MOV; trocar valores com XCHG; ler o código de máquina gerado
+prerequisitos: aula01
 ---
 
 ## Os três tipos de operando
@@ -145,6 +146,13 @@ Cada instrução vira de 1 a 6 bytes. Alguns exemplos reais do 8086 (veja na aba
 | `XCHG CH, CL` | `86 E9` | 2 | 4 |
 
 Repare: registrador com registrador é o mais rápido; memória é mais lenta e ocupa mais bytes. Guarde essa intuição para o Módulo 7.
+
+```previsao titulo="Troca e cópia" perguntar="AX BX CX"
+        MOV  AX, 5
+        MOV  BX, 9
+        XCHG AX, BX
+        MOV  CX, AX
+```
 
 ```quiz
 ? Qual destas instruções é válida no 8086?

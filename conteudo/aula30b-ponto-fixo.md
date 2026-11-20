@@ -7,6 +7,7 @@ titulo: Ponto fixo
 subtitulo: Frações com inteiros, arredondamento e tabelas de seno
 duracao: 50 min
 objetivos: representar frações em ponto fixo 8.8 e 16.16; somar, multiplicar, dividir e arredondar em ponto fixo; usar tabelas de seno em ponto fixo; saber quando o ponto fixo é melhor que o coprocessador
+prerequisitos: aula22; aula30
 ---
 
 A [Aula 30](aula:aula30) mostrou a primeira forma de fugir do binário puro, o BCD. Esta aula mostra a segunda, que os jogos e as demos usavam o tempo todo: o **ponto fixo**, frações guardadas em inteiros comuns.

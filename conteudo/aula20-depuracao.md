@@ -6,6 +6,7 @@ titulo: Depuração, caçando bugs
 subtitulo: Do DEBUG.COM ao Turbo Debugger, e os erros que todo programador assembly comete
 duracao: 80 min
 objetivos: aplicar um método para encontrar bugs em vez de chutar; usar passo a passo, passo por cima, pontos de parada e execução até o cursor; reconhecer os sintomas dos erros clássicos de assembly 8086; conhecer o DEBUG.COM e o Turbo Debugger; consertar programas quebrados
+prerequisitos: aula19
 ---
 
 ## Assembly não perdoa

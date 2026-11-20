@@ -6,6 +6,7 @@ titulo: Os registradores do 8086
 subtitulo: As 14 "variáveis" de 16 bits que moram dentro da CPU
 duracao: 50 min
 objetivos: conhecer os 14 registradores do 8086 e a função de cada um; entender como AX se divide em AH e AL; usar MOV para colocar valores em registradores; ler os registradores no depurador
+prerequisitos: aula00
 ---
 
 ## Por que registradores?
@@ -146,6 +147,12 @@ Abra este código no **Laboratório** e escolha a aba **Listagem**. Você vai ve
 ## Os registradores no depurador
 
 No laboratório, a janela **Registradores** mostra cada registrador em hexadecimal, em decimal sem sinal e em decimal com sinal, além das metades H e L. Os registradores que mudaram na última instrução ficam **destacados**. Acostume-se a olhar para essa janela depois de cada passo: é assim que se programa em Assembly.
+
+```previsao titulo="Partes altas e baixas" perguntar="AX BX"
+        MOV  AX, 1234h
+        MOV  AL, 0FFh
+        MOV  BH, AH
+```
 
 ```quiz
 ? Se AX = 1234h, quanto vale AL?

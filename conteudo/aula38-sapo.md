@@ -6,6 +6,7 @@ titulo: Sapo, atravessando a estrada e o rio
 subtitulo: Frogger em modo texto - faixas circulares, células de 2 colunas, tocas e barra de tempo
 duracao: 100 min
 objetivos: entender as regras do Frogger de 1981 e como reduzi-las a tabelas; representar cada faixa como um desenho circular de 40 casas com um deslocamento; mover faixas inteiras somando 1 num byte (aritmética módulo 40); usar células de 2 colunas para ter "pixels" quadrados no modo texto; decidir a morte do sapo olhando a casa embaixo dele; medir o tempo pelos tiques da BIOS com uma barra que encolhe; ler a listagem completa do SAPO.ASM
+prerequisitos: aula33
 ---
 
 ## O sapo que queria chegar em casa

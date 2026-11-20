@@ -35,9 +35,15 @@ for (const f of todas) {
         else ok++;
       }
     }
+    if (b.t === 'previsao') {
+      const r = M.runProgram(b.code);
+      if (/^erro|tempo/.test(r.status) || !r.prog.ok) falha(f + ' [previsão ' + (b.titulo || '') + '] não roda até o fim');
+      else { for (const reg of b.perguntar) { try { r.machine.getReg(reg); ok++; } catch (e) { falha(f + ' [previsão]: registrador desconhecido ' + reg); } } }
+    }
     if (b.t === 'ex') {
       const ex = b.ex;
       if (!ex.solucao) { falha(f + ' ' + ex.id + ': sem solução'); continue; }
+      if (ex.desafio && ex.dicas && ex.dicas.length) falha(f + ' ' + ex.id + ': desafio não pode ter dicas');
       // exercício "chutável": se nenhum teste muda a entrada, gravar a resposta fixa passaria.
       // Quem é fixo de propósito declara "fixo: motivo" no cabeçalho.
       const temEntrada = (t) => ['setup', 'entrada', 'arquivos', 'linhaComando', 'mouse', 'residente'].some(k => t[k] !== undefined);
@@ -52,6 +58,15 @@ for (const f of todas) {
         else ok++;
       }
     }
+  }
+}
+// pré-requisitos: apontam para aulas que existem e vêm antes
+{
+  const porId = Object.fromEntries(Object.values(lidas).map(a => [a.id, a]));
+  for (const a of Object.values(lidas)) for (const id of a.prerequisitos || []) {
+    if (!porId[id]) falha(a.id + ': pré-requisito inexistente ' + id);
+    else if (porId[id].numero >= a.numero) falha(a.id + ': pré-requisito ' + id + ' não vem antes');
+    else ok++;
   }
 }
 // Livro da BIOS: compila, os links levam a aulas e capítulos que existem

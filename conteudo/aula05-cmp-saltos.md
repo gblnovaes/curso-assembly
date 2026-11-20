@@ -6,6 +6,7 @@ titulo: CMP e saltos condicionais
 subtitulo: Como o Assembly toma decisões e repete coisas
 duracao: 60 min
 objetivos: usar JMP e rótulos; comparar valores com CMP; escolher o salto certo para números com e sem sinal; escrever if, if/else, while e for em Assembly; entender o limite de alcance dos saltos condicionais do 8086
+prerequisitos: aula04
 ---
 
 ## Rótulos e JMP
@@ -133,6 +134,15 @@ continua:
 :::anos90 "Relative jump out of range"
 Essa mensagem de erro do MASM perseguia todo mundo que escrevia rotinas grandes. O TASM tinha a diretiva `JUMPS`, que fazia essa troca automaticamente. A partir do 80386 a Intel criou saltos condicionais longos (2 ou 4 bytes de distância), mas no 8086 o limite é este.
 :::
+
+```previsao titulo="Um laço com JG" perguntar="AX BX"
+        MOV  AX, 10
+        MOV  BX, 0
+laco:   ADD  BX, AX
+        SUB  AX, 3
+        CMP  AX, 0
+        JG   laco
+```
 
 ```quiz
 ? Depois de CMP AX,BX com AX = 5 e BX = 5, qual salto acontece?

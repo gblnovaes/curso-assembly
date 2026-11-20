@@ -6,6 +6,7 @@ titulo: Modos de endereçamento
 subtitulo: Todas as formas de dizer ao 8086 onde está um dado
 duracao: 60 min
 objetivos: conhecer os modos imediato, registrador, direto, indireto, baseado, indexado e baseado-indexado; saber quais combinações de registradores são válidas no 8086; entender offset, OFFSET e LEA; saber qual segmento é usado por padrão
+prerequisitos: aula02; aula05
 ---
 
 ## Endereço efetivo
@@ -147,6 +148,23 @@ Calcular o endereço efetivo custa ciclos, e o custo depende do modo:
 | `[BX+DI+desloc]`, `[BP+SI+desloc]` | 12 |
 
 `MOV AX,[BX]` leva 8 + 5 = 13 ciclos; `MOV AX,[BX+SI+2]` leva 8 + 11 = 19. Em um laço que roda milhares de vezes, essa diferença conta. O Módulo 7 volta nisso.
+
+```previsao titulo="Base mais índice" perguntar="CX DX"
+.MODEL SMALL
+.STACK 100h
+.DATA
+v       DW 10, 20, 30, 40
+.CODE
+inicio: MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  BX, v
+        MOV  SI, 4
+        MOV  CX, [BX+SI]
+        MOV  DX, [BX+SI+2]
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
 
 ```quiz
 ? Qual endereçamento é válido no 8086?

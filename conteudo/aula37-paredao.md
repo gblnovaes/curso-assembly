@@ -6,6 +6,7 @@ titulo: Paredão, a parede de tijolos
 subtitulo: Breakout no modo 13h - ponto fixo, colisão por eixo, ângulo pela raquete e fases desenhadas em bits
 duracao: 100 min
 objetivos: entender as regras do Breakout de 1976 e como elas viram estado na memória; guardar a posição da bola em ponto fixo (1/16 de pixel) e converter com SAR; achar o tijolo de um pixel com uma divisão e uma multiplicação; resolver a colisão um eixo de cada vez e rebater com NEG; calcular o ângulo da bola pelo ponto onde ela bate na raquete; montar fases a partir de desenhos guardados em bits; ler a listagem completa do PAREDAO.ASM
+prerequisitos: aula34
 ---
 
 ## Uma parede, uma bola e uma raquete

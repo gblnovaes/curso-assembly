@@ -6,6 +6,7 @@ titulo: Aritmética com sinal
 subtitulo: Complemento de dois, CF contra OF, NEG, CBW/CWD, IMUL e IDIV
 duracao: 55 min
 objetivos: representar números negativos em complemento de dois; distinguir o estouro sem sinal (CF) do estouro com sinal (OF); usar NEG e entender o caso especial de 8000h; estender o sinal com CBW e CWD; multiplicar e dividir com sinal usando IMUL e IDIV; conhecer o estouro de -32768 / -1 e as particularidades do IDIV no 8086
+prerequisitos: aula04; aula21
 ---
 
 ## Bits não têm sinal; você é que decide

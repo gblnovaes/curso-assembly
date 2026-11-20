@@ -6,6 +6,7 @@ titulo: O timer 8253 e o alto-falante
 subtitulo: Portas 40h a 43h, divisores, notas musicais, timer acelerado e medição de tempo
 duracao: 90 min
 objetivos: entender os três canais do PIT 8253 e a palavra de controle da porta 43h; calcular divisores com uma divisão de 32 bits; tocar notas e melodias no alto-falante pelo canal 2 e pela porta 61h; esperar um tempo exato contando os ticks da BIOS; acelerar o canal 0 sem estragar o relógio do DOS; medir o tempo de um trecho de código com o comando de latch; ler o teclado direto da porta 60h
+prerequisitos: aula05b; aula15
 ---
 
 ## Um cristal, três contadores

@@ -7,6 +7,7 @@ titulo: O 8087 a fundo
 subtitulo: Raiz, comparações, Bhaskara, palavra de controle e exceções
 duracao: 55 min
 objetivos: calcular raízes com FSQRT; comparar reais com FCOM, FSTSW e SAHF; resolver uma equação do segundo grau no 8087; controlar o arredondamento com a palavra de controle; entender infinito, NaN e as exceções mascaradas
+prerequisitos: aula31
 ---
 
 Na [Aula 31](aula:aula31) você aprendeu a conversar com o 8087: a pilha ST(0)..ST(7), os tipos de dados, as quatro operações e a impressão de um real. Agora vamos usar o coprocessador para valer: raízes, comparações, uma fórmula inteira (Bhaskara) e o controle fino do arredondamento e das exceções.
@@ -472,6 +473,42 @@ inicio: MOV  AX, @DATA
         MOV  AX, 4C00h
         INT  21h
 END inicio
+```
+
+## Revisão do módulo 12
+
+Antes de seguir, confira se o módulo "Hardware direto e matemática" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Que frequência o canal 2 do PIT gera com o divisor D?
+- D Hz
++ 1.193.182 ÷ D Hz
+- 18,2 × D Hz
+> O cristal do PIT oscila a 1,193182 MHz e o divisor o reduz.
+
+? Depois de qual instrução se usa DAA?
++ ADD ou ADC de dois números em BCD compactado, com o resultado em AL
+- MUL de dois números BCD
+- Qualquer instrução que altere AX
+> DAA corrige AL para que a soma volte a ser BCD válido.
+
+? Como 1,5 fica em ponto fixo 8.8?
+- 0015h
++ 0180h
+- 1500h
+> 1,5 × 256 = 384 = 0180h: 01h é a parte inteira e 80h é meio.
+
+? O que FLD faz com a pilha do 8087?
++ Empilha o valor: ele vira ST(0) e o antigo ST(0) vira ST(1).
+- Soma o valor a ST(0).
+- Grava ST(0) na memória.
+> FSTP é o oposto: grava e desempilha.
+
+? Depois de FCOM, como o 8086 decide o salto?
+- Lendo CF direto.
++ FSTSW na memória, FWAIT, MOV AX, SAHF e saltos sem sinal (JA, JB, JE).
+- Com JG e JL.
+> As condições do 8087 caem nos bits de CF, PF e ZF, por isso os saltos sem sinal.
 ```
 
 :::resumo

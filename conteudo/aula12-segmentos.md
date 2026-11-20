@@ -6,6 +6,7 @@ titulo: Segmentos a fundo
 subtitulo: Como 16 bits endereçam 1 MB, e a memória de vídeo em B800h
 duracao: 75 min
 objetivos: calcular endereços físicos a partir de segmento:offset; conhecer o mapa de memória do PC; usar prefixos de segmento (ES:, CS:, SS:); declarar segmentos completos com SEGMENT, ENDS e ASSUME; chamar procedimentos FAR e usar ponteiros longos com LDS e LES; escrever direto na memória de vídeo em B800h
+prerequisitos: aula06; aula11
 ---
 
 ## O problema: 16 bits não bastam

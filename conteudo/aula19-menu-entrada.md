@@ -6,6 +6,7 @@ titulo: Menus e entrada de dados
 subtitulo: Lendo linhas com a função 0Ah, convertendo texto em número e validando com CF
 duracao: 80 min
 objetivos: ler uma linha inteira com INT 21h AH=0Ah e entender o formato do buffer; converter texto decimal em número com a regra n = n × 10 + dígito; detectar dígitos inválidos e estouro; sinalizar erros com CF usando STC e CLC, como o DOS faz; montar um menu interativo com uma tabela de saltos
+prerequisitos: aula13; aula14
 ---
 
 ## Programas que conversam

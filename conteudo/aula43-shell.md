@@ -6,6 +6,7 @@ titulo: O shell do MINIOS
 subtitulo: Ler uma linha, separar o comando, procurar numa tabela, comandos internos e programas externos, e o que o COMMAND.COM faz de diferente
 duracao: 120 min
 objetivos: entender por que o interpretador de comandos é um programa comum e não parte do kernel; ler uma linha com a função 0Ah e transformar o buffer num texto terminado em zero; separar a primeira palavra dos argumentos e convertê-la para maiúsculas; procurar o comando numa tabela de nomes e endereços e chamá-lo com um CALL indireto; escrever os comandos internos AJUDA, DIR, TIPO, LIMPA, VER, MEM, HORA, ECO, REINICIA e DESLIGA usando o kernel e a BIOS; rodar programas externos pela função 4Bh com a cauda de comando no formato do PSP; comparar o shell do MINIOS com o COMMAND.COM do MS-DOS (internos e externos, PROMPT, parte residente e parte transiente)
+prerequisitos: aula42
 ---
 
 ## O programa que conversa com você

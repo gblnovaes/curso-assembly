@@ -6,6 +6,7 @@ titulo: CALL e RET: procedimentos
 subtitulo: Sub-rotinas, endereço de retorno e chamadas near e far
 duracao: 55 min
 objetivos: escrever procedimentos com PROC e ENDP; entender exatamente o que CALL e RET fazem com a pilha; distinguir chamadas near e far; usar RET n; passar dados por registradores e preservar o que não é resultado
+prerequisitos: aula08
 ---
 
 ## Por que procedimentos
@@ -169,6 +170,23 @@ Os modelos do MASM e do TASM (TINY, SMALL, MEDIUM, COMPACT, LARGE, HUGE) existia
 ## RET n
 
 `RET` aceita um número: `RET 4` desempilha o endereço de retorno e **depois soma 4 a SP**, descartando 4 bytes extras da pilha. Isso serve para limpar parâmetros que o chamador empilhou antes do `CALL`. É o assunto da próxima aula.
+
+```previsao titulo="Duas chamadas" perguntar="CX"
+.MODEL SMALL
+.STACK 100h
+.CODE
+inicio: MOV  AX, 3
+        CALL DOBRA
+        CALL DOBRA
+        MOV  CX, AX
+        MOV  AX, 4C00h
+        INT  21h
+DOBRA   PROC
+        ADD  AX, AX
+        RET
+DOBRA   ENDP
+END inicio
+```
 
 ```quiz
 ? O que CALL near empilha?
@@ -413,6 +431,75 @@ MAXIMO  PROC
         POP  CX
         RET
 MAXIMO  ENDP
+END inicio
+```
+
+```exercicio
+id: a09-4
+titulo: Conserte: o laço que não acaba
+nivel: 2
+fixo: sem entrada: conserte o programa dado
+exigir: CALL
+--- enunciado
+**Conserte o bug.** O programa deveria imprimir 3 linhas com 4 asteriscos cada, mas não para de imprimir. O programa principal e o procedimento estão certos cada um sozinho; o problema está na conversa entre eles. Conserte **só o procedimento**.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.CODE
+inicio:
+        MOV  CX, 3
+linhas: CALL LINHA
+        LOOP linhas
+        MOV  AX, 4C00h
+        INT  21h
+
+LINHA   PROC
+        MOV  CX, 4
+        MOV  AH, 02h
+        MOV  DL, '*'
+ast:    INT  21h
+        LOOP ast
+        MOV  DL, 13
+        INT  21h
+        MOV  DL, 10
+        INT  21h
+        RET
+LINHA   ENDP
+END inicio
+--- testes
+[{ "nome": "3 linhas de 4", "espera": { "saida": "****\n****\n****", "pilhaEquilibrada": true } }]
+--- dicas
+Quanto vale CX quando LINHA volta? E o que o LOOP do programa principal faz com esse valor?
+Salve CX (e AX e DX, que o procedimento também usa) com PUSH no começo de LINHA e restaure com POP antes do RET, na ordem inversa.
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.CODE
+inicio:
+        MOV  CX, 3
+linhas: CALL LINHA
+        LOOP linhas
+        MOV  AX, 4C00h
+        INT  21h
+
+LINHA   PROC
+        PUSH AX
+        PUSH CX
+        PUSH DX
+        MOV  CX, 4
+        MOV  AH, 02h
+        MOV  DL, '*'
+ast:    INT  21h
+        LOOP ast
+        MOV  DL, 13
+        INT  21h
+        MOV  DL, 10
+        INT  21h
+        POP  DX
+        POP  CX
+        POP  AX
+        RET
+LINHA   ENDP
 END inicio
 ```
 

@@ -6,6 +6,7 @@ titulo: PONG, tênis de mesa no modo 13h
 subtitulo: Teclado pela INT 9, ponto fixo, física da bola, um adversário de silício e 70 quadros por segundo
 duracao: 120 min
 objetivos: conhecer a história do Pong e por que ele mudou a indústria; organizar um jogo de ação no modo 13h sincronizado com o retraço vertical; ler dois jogadores ao mesmo tempo com uma INT 9 própria; guardar posição e velocidade da bola em ponto fixo de 1/16 de pixel; detectar a colisão da bola com as raquetes e calcular o ângulo do rebote; escrever um adversário controlado pelo computador; desenhar retângulos com recorte e dígitos grandes guardados em bits; ler a listagem completa do PONG.ASM
+prerequisitos: aula33
 ---
 
 ## O jogo que abriu os fliperamas

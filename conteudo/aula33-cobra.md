@@ -6,6 +6,7 @@ titulo: COBRA, o jogo da cobrinha
 subtitulo: Uma fila circular, a tela como mapa de colisão e um jogo completo em modo texto
 duracao: 120 min
 objetivos: conhecer a história do jogo da cobrinha, de Blockade ao Nibbles do QBasic; entender a arquitetura completa de um jogo em modo texto (variáveis, laço, procedimentos); guardar o corpo da cobra numa fila circular com índices mascarados; usar a própria memória de vídeo como mapa de colisão; separar a direção pedida da direção aplicada para impedir a meia-volta; sortear comida só em células vazias; acelerar o jogo com o placar; ler a listagem completa do COBRA.ASM
+prerequisitos: aula32
 ---
 
 ## Um jogo que cabe numa linha de texto

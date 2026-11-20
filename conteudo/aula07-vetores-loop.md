@@ -6,6 +6,7 @@ titulo: Vetores, LOOP, BYTE PTR e WORD PTR
 subtitulo: Percorrendo a memória com laços
 duracao: 65 min
 objetivos: declarar vetores com DUP e strings com DB; percorrer vetores de bytes e de words com ponteiros; usar LOOP e entender a armadilha de CX = 0; usar BYTE PTR e WORD PTR quando o tamanho é ambíguo; ver o little-endian na prática
+prerequisitos: aula05; aula06
 ---
 
 ## Declarando vetores
@@ -224,6 +225,13 @@ END inicio
 :::anos90 A tabela ASCII
 Na tabela ASCII, 'A' é 41h e 'a' é 61h: a diferença é exatamente o bit 5 (20h). Programadores espertos trocavam o `SUB` por `AND BYTE PTR [SI], 0DFh`, que desliga o bit 5. A tabela completa do PC (CP437), com os caracteres de moldura e acentos, está na **Referência** (F6).
 :::
+
+```previsao titulo="LOOP de trás para a frente" perguntar="AX CX"
+        MOV  CX, 5
+        MOV  AX, 0
+soma:   ADD  AX, CX
+        LOOP soma
+```
 
 ```quiz
 ? Quantos bytes ocupa "tab DW 10 DUP(0)"?
@@ -494,6 +502,175 @@ impar:
         LOOP volta
         MOV  soma, BX
 
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
+
+```exercicio
+id: a07-5
+titulo: Conserte: a soma que passa do ponto
+nivel: 2
+--- enunciado
+**Conserte o bug.** Este programa deveria somar os 6 **bytes** do vetor `v` e gravar o total (que pode passar de 255) em `total`, mas o resultado sai errado. Rode no laboratório, observe AX a cada volta e descubra o que está sendo somado de fato.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.DATA
+v       DB 200, 100, 50, 25, 10, 5
+total   DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  SI, v
+        MOV  CX, 6
+        MOV  AX, 0
+soma:   ADD  AX, [SI]
+        INC  SI
+        LOOP soma
+        MOV  total, AX
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+--- testes
+[
+ { "nome": "200 + 100 + 50 + 25 + 10 + 5 = 390", "espera": { "mem": { "total": 390 } } },
+ { "nome": "seis vezes 255", "setup": { "v": [255, 255, 255, 255, 255, 255] }, "espera": { "mem": { "total": 1530 } } },
+ { "nome": "1, 2, 3, 4, 5, 6", "setup": { "v": [1, 2, 3, 4, 5, 6] }, "espera": { "mem": { "total": 21 } } }
+]
+--- dicas
+`ADD AX, [SI]` soma uma **word**: o byte em SI e também o byte seguinte.
+Leve o byte para um registrador de 8 bits, zere a parte alta e some o registrador de 16 bits: MOV BL,[SI] / MOV BH,0 / ADD AX,BX.
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.DATA
+v       DB 200, 100, 50, 25, 10, 5
+total   DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  SI, v
+        MOV  CX, 6
+        MOV  AX, 0
+soma:   MOV  BL, [SI]
+        MOV  BH, 0
+        ADD  AX, BX
+        INC  SI
+        LOOP soma
+        MOV  total, AX
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+```
+
+## Revisão do módulo 3
+
+Antes de seguir, confira se o módulo "Memória e endereçamento" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Com BX = 100h e SI = 6, qual offset [BX+SI+4] acessa?
+- 104h
++ 10Ah
+- 106h
+> 100h + 6 + 4 = 10Ah.
+
+? Na memória, os bytes em DS:SI são 34h e depois 12h. Quanto vale AX depois de MOV AX,[SI]?
+- 3412h
++ 1234h
+- 0034h
+> Little-endian: o primeiro byte é a parte baixa.
+
+? Por que o montador recusa MOV [BX], 5?
+- Porque BX não pode ser ponteiro.
++ Porque não sabe se é para gravar um byte ou uma word: falta BYTE PTR ou WORD PTR.
+- Porque número direto não vai para a memória.
+> Nenhum dos operandos diz o tamanho. Com MOV BYTE PTR [BX], 5 ele monta.
+
+? Se CX = 0 quando o laço começa, quantas vezes LOOP repete?
+- Nenhuma
+- Uma
++ 65.536
+> LOOP primeiro decrementa CX (0 vira FFFFh) e só depois testa. Proteja o laço com JCXZ.
+
+? Qual destes endereçamentos não existe no 8086?
+- [BX+SI]
+- [BP+DI+2]
++ [AX]
+> No 8086, só BX, BP, SI e DI servem de ponteiro.
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a07-d1
+titulo: O segundo maior
+nivel: 3
+desafio: sim
+--- enunciado
+O vetor `w` tem **8 words sem sinal**, que podem se repetir. Grave em `segundo` o **segundo maior valor distinto**: o maior valor que é menor que o máximo. Se todos os valores forem iguais, grave esse valor.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.DATA
+w       DW 5, 80, 12, 33, 80, 7, 0, 1
+N       EQU 8
+segundo     DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+
+        ; seu código aqui
+
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+--- testes
+[
+ { "nome": "o máximo 80 aparece duas vezes: segundo = 33", "espera": { "mem": { "segundo": 33 } } },
+ { "nome": "todos iguais", "setup": { "w": [9, 9, 9, 9, 9, 9, 9, 9] }, "espera": { "mem": { "segundo": 9 } } },
+ { "nome": "zeros e um 1", "setup": { "w": [0, 1, 0, 0, 0, 0, 0, 0] }, "espera": { "mem": { "segundo": 0 } } },
+ { "nome": "os dois maiores no começo", "setup": { "w": [65535, 65534, 1, 2, 3, 4, 5, 6] }, "espera": { "mem": { "segundo": 65534 } } },
+ { "nome": "o segundo no fim", "setup": { "w": [1, 100, 2, 3, 4, 5, 6, 99] }, "espera": { "mem": { "segundo": 99 } } }
+]
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.DATA
+w       DW 5, 80, 12, 33, 80, 7, 0, 1
+N       EQU 8
+segundo     DW 0
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  SI, w
+        MOV  CX, N
+        MOV  AX, 0
+maxi:   CMP  [SI], AX
+        JBE  n1
+        MOV  AX, [SI]
+n1:     ADD  SI, 2
+        LOOP maxi
+        LEA  SI, w
+        MOV  CX, N
+        MOV  DX, AX
+        MOV  BX, 0
+segu:   MOV  DI, [SI]
+        CMP  DI, AX
+        JAE  n2
+        CMP  BX, 0
+        JE   pega
+        CMP  DI, DX
+        JBE  n2
+pega:   MOV  DX, DI
+        MOV  BX, 1
+n2:     ADD  SI, 2
+        LOOP segu
+        MOV  segundo, DX
         MOV  AX, 4C00h
         INT  21h
 END inicio

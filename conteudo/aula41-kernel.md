@@ -6,6 +6,7 @@ titulo: O kernel e a sua própria INT 21h
 subtitulo: Mapa de memória, vetores na IVT, um quadro de registradores na pilha e uma tabela de funções
 duracao: 140 min
 objetivos: entender o que um kernel faz e o que ele deixa para os programas; desenhar o mapa de memória de um sistema e justificar cada endereço; instalar rotinas de interrupção escrevendo direto na tabela de vetores; escrever uma INT 21h que guarda todos os registradores num quadro na pilha e os lê e altera por BP; despachar funções por uma tabela de número e endereço; devolver resultados e erros alterando o quadro e o CF das FLAGS salvas; implementar as funções de console 01h, 02h, 07h, 08h, 09h, 0Ah e 0Bh só com a BIOS
+prerequisitos: aula40
 ---
 
 ## O que é um kernel

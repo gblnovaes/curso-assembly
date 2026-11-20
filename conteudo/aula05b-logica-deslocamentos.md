@@ -7,6 +7,7 @@ titulo: Lógica bit a bit e deslocamentos
 subtitulo: AND, OR, XOR, NOT, TEST, SHL, SHR, SAR e as rotações
 duracao: 70 min
 objetivos: ligar, desligar e inverter bits escolhidos com OR, AND e XOR; testar bits sem estragar o valor com TEST; multiplicar e dividir por potências de 2 com SHL, SHR e SAR; girar bits com ROL, ROR, RCL e RCR; extrair um campo de bits com deslocamento e máscara
+prerequisitos: aula04; aula05
 ---
 
 ## Por que mexer em bits
@@ -217,6 +218,14 @@ A BIOS guarda em 0040:0017h um byte com o estado das teclas especiais: bit 0 Shi
 `SHL reg, CL` gasta 8 ciclos mais 4 por casa deslocada, então deslocar 4 casas com CL custa 24 ciclos, enquanto quatro `SHL reg, 1` custam 8. Para poucas casas, repetir a forma de 1 é mais rápido; a [Aula 16](aula:aula16) volta a esse assunto.
 :::
 
+```previsao titulo="Máscara e deslocamento" perguntar="AL CF"
+        MOV  AL, 0B6h
+        AND  AL, 0Fh
+        OR   AL, 80h
+        MOV  CL, 2
+        SHL  AL, CL
+```
+
 ```quiz
 ? Qual instrução desliga só o bit 7 de AL e mantém os outros?
 - OR AL, 80h
@@ -419,6 +428,78 @@ Piscar: deixe para o fim, porque CL foi usado como contador. ROL AL,1 leva o bit
         ROL  AL, 1
         AND  AL, 1
         MOV  CL, AL
+```
+
+## Revisão do módulo 2
+
+Antes de seguir, confira se o módulo "FLAGS e decisões" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Com AX = 5 e BX = 10 (sem sinal), depois de CMP AX,BX, qual salto é tomado?
++ JB
+- JA
+- JE
+> 5 está abaixo de 10. Para números sem sinal, use JB/JA; JL/JG são para números com sinal.
+
+? Com AX = FFFFh e BX = 1, depois de CMP AX,BX, qual salto é tomado?
+- JG
++ JA
+- JE
+> Sem sinal, FFFFh é 65.535 e está acima de 1 (JA). Com sinal, é −1, que é menor que 1, então JG não salta.
+
+? Qual instrução descobre se AX é ímpar sem mudar AX?
+- AND AX, 1
++ TEST AX, 1
+- SHR AX, 1
+> TEST faz o AND só para as flags. AND e SHR destroem o valor.
+
+? Depois de MOV AX,7 e SHR AX,1, quanto valem AX e CF?
+- AX = 14, CF = 0
++ AX = 3, CF = 1
+- AX = 3, CF = 0
+> 7 ÷ 2 = 3 e o resto (o bit que saiu) vai para CF.
+
+? O que XOR AL, AL faz com AL e com as flags?
++ AL = 0, ZF = 1 e CF = 0
+- AL = FFh e CF = 1
+- AL não muda, só as flags
+> Um valor XOR ele mesmo dá zero. As operações lógicas zeram CF e OF.
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a05b-d1
+titulo: A maior sequência de bits ligados
+nivel: 3
+desafio: sim
+proibir: MUL, DIV
+--- enunciado
+Coloque em **CX** o tamanho da **maior sequência de bits 1 seguidos** em **AX**. Por exemplo, em 0111 0110 1111 1000b as sequências têm 3, 2 e 5 bits, então CX = 5. AX pode ser destruído.
+--- inicial
+; CX = maior sequência de bits 1 seguidos em AX
+--- testes
+[
+ { "nome": "0", "setup": { "AX": 0, "CX": 3 }, "espera": { "CX": 0 } },
+ { "nome": "FFFFh", "setup": { "AX": 65535 }, "espera": { "CX": 16 } },
+ { "nome": "0F0Fh", "setup": { "AX": 3855 }, "espera": { "CX": 4 } },
+ { "nome": "76F8h", "setup": { "AX": 30456 }, "espera": { "CX": 5 } },
+ { "nome": "8001h", "setup": { "AX": 32769 }, "espera": { "CX": 1 } }
+]
+--- solucao
+        XOR  CX, CX
+        XOR  BX, BX
+        MOV  DX, 16
+laco:   SHL  AX, 1
+        JNC  zero
+        INC  BX
+        CMP  BX, CX
+        JBE  prox
+        MOV  CX, BX
+        JMP  prox
+zero:   XOR  BX, BX
+prox:   DEC  DX
+        JNZ  laco
 ```
 
 :::resumo

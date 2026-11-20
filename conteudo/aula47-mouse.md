@@ -6,6 +6,7 @@ titulo: O mouse: a INT 33h
 subtitulo: Posição, botões, cursor e a rotina de eventos do driver
 duracao: 90 min
 objetivos: detectar o driver do mouse e entender a diferença entre driver e BIOS; converter as coordenadas virtuais 640x200 para células de texto e pixels do modo 13h; mostrar e esconder o cursor respeitando o contador; ler posição e botões por consulta e contar cliques sem perder nenhum; limitar a área e posicionar o cursor; instalar uma rotina de eventos com AX=0Ch e desinstalá-la ao sair; escrever um programa de pintura no modo 13h
+prerequisitos: aula15; aula23
 ---
 
 ## Um rato no PC

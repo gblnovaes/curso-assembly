@@ -6,6 +6,7 @@ titulo: Fundamentos de jogos em DOS
 subtitulo: O laço do jogo, tempo, teclado, sorteio, vídeo direto e som sem travar
 duracao: 120 min
 objetivos: montar o laço de um jogo (entrada, atualização, desenho, espera); medir o tempo pelos tiques da BIOS e pelo retraço vertical; ler o teclado sem bloquear pela INT 16h; instalar uma INT 9 própria com uma tabela de teclas apertadas; sortear números com um gerador congruente linear; desenhar direto na memória de vídeo em B800h e A000h, apagando e redesenhando; tocar efeitos sonoros pelo PIT sem parar o jogo; sair limpo, devolvendo vídeo, vetores e alto-falante
+prerequisitos: aula24; aula28; aula29
 ---
 
 ## Um programa que não espera por você

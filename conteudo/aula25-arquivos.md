@@ -6,6 +6,7 @@ titulo: Arquivos com handles
 subtitulo: Criar, abrir, ler, gravar e posicionar arquivos com a INT 21h
 duracao: 90 min
 objetivos: escrever nomes de arquivo como strings ASCIIZ; criar, abrir, ler, gravar e fechar arquivos com as funções 3Ch a 3Fh, 40h e 3Eh; tratar erros pelo CF e pelo código em AX; ler um arquivo inteiro em pedaços até AX = 0; usar os handles padrão 0 a 4 e escrever na tela com o handle 1; posicionar o ponteiro com 42h e descobrir o tamanho de um arquivo; apagar, renomear e ler atributos com 41h, 56h e 43h
+prerequisitos: aula14; aula19
 ---
 
 ## O disco, finalmente

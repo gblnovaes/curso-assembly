@@ -7,6 +7,7 @@ titulo: Aritmética com sinal na prática
 subtitulo: Imprimir, ler e calcular com números negativos
 duracao: 50 min
 objetivos: imprimir números com sinal de 16 e 32 bits; negar um número de 32 bits com NEG e SBB; ler números negativos digitados; montar a calculadora com sinal da faixa −999 a 999
+prerequisitos: aula22
 ---
 
 Na [Aula 22](aula:aula22) você viu como o 8086 representa os negativos e quais instruções e saltos usar com eles. Agora vamos colocar isso para trabalhar: imprimir e ler números com sinal e terminar a calculadora da [Aula 21](aula:aula21) com números negativos.
@@ -613,6 +614,104 @@ CALCULAR PROC
 @@erro: STC
         RET
 CALCULAR ENDP
+END inicio
+```
+
+## Revisão do módulo 8
+
+Antes de seguir, confira se o módulo "Projetos, depuração e aritmética com sinal" ficou firme. As perguntas misturam assuntos de todas as aulas do módulo (e algumas dos anteriores).
+
+```quiz
+? Um .EXE imprime lixo em vez da mensagem. Qual é o suspeito número um?
++ Faltou MOV AX,@DATA / MOV DS,AX no começo.
+- O texto não terminou com 0.
+- A mensagem tem acento.
+> No começo de um .EXE, DS aponta para o PSP, não para os dados.
+
+? O que acontece quando o quociente de um DIV não cabe no destino?
+- O quociente é truncado.
++ O processador dispara a INT 0 (Divide overflow).
+- CF fica 1 e o programa continua.
+> Divisão por zero e quociente grande demais caem na mesma interrupção.
+
+? Antes de IDIV BX com o dividendo em AX, o que fazer?
+- XOR DX, DX
++ CWD
+- CBW
+> CWD estende o sinal de AX para DX. Zerar DX transformaria um negativo em um positivo enorme.
+
+? Como −1 fica guardado em 16 bits?
+- 8001h
++ FFFFh
+- 0001h com um bit de sinal à parte
+> Complemento de dois: NOT 1 + 1 = FFFFh.
+
+? Para saltar quando AX < BX, tratando os dois como números com sinal, depois de CMP AX,BX:
+- JB
++ JL
+- JC
+> JL olha SF e OF (com sinal). JB olha CF (sem sinal).
+```
+
+Para fechar, um desafio sem dicas. Use o laboratório (F4) para depurar à vontade.
+
+```exercicio
+id: a22b-d1
+titulo: Mínimo, máximo e amplitude com sinal
+nivel: 3
+desafio: sim
+--- enunciado
+O vetor `v` tem **6 words com sinal** (de −30.000 a 30.000). Coloque o **menor** em **BX**, o **maior** em **DX** e a **amplitude** (maior − menor, que cabe em 16 bits sem sinal) em **CX**.
+--- inicial
+.MODEL SMALL
+.STACK 100h
+.DATA
+v       DW 5, -3, 100, 0, -200, 7
+N       EQU 6
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+
+        ; seu código aqui
+
+        MOV  AX, 4C00h
+        INT  21h
+END inicio
+--- testes
+[
+ { "nome": "5, -3, 100, 0, -200, 7", "espera": { "BX": 65336, "DX": 100, "CX": 300 } },
+ { "nome": "todos -1", "setup": { "v": [-1, -1, -1, -1, -1, -1] }, "espera": { "BX": 65535, "DX": 65535, "CX": 0 } },
+ { "nome": "30000 e -30000", "setup": { "v": [30000, -30000, 0, 0, 0, 0] }, "espera": { "BX": 35536, "DX": 30000, "CX": 60000 } },
+ { "nome": "1 a 6", "setup": { "v": [1, 2, 3, 4, 5, 6] }, "espera": { "BX": 1, "DX": 6, "CX": 5 } }
+]
+--- solucao
+.MODEL SMALL
+.STACK 100h
+.DATA
+v       DW 5, -3, 100, 0, -200, 7
+N       EQU 6
+.CODE
+inicio:
+        MOV  AX, @DATA
+        MOV  DS, AX
+        LEA  SI, v
+        MOV  BX, [SI]
+        MOV  DX, [SI]
+        MOV  CX, N
+laco:   MOV  AX, [SI]
+        CMP  AX, BX
+        JGE  nmin
+        MOV  BX, AX
+nmin:   CMP  AX, DX
+        JLE  nmax
+        MOV  DX, AX
+nmax:   ADD  SI, 2
+        LOOP laco
+        MOV  CX, DX
+        SUB  CX, BX
+        MOV  AX, 4C00h
+        INT  21h
 END inicio
 ```
 

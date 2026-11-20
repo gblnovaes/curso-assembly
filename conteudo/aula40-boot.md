@@ -6,6 +6,7 @@ titulo: Do botão de ligar ao setor de boot
 subtitulo: POST, INT 19h, 0000:7C00, a assinatura 55AAh e a INT 13h lendo o resto do sistema
 duracao: 130 min
 objetivos: entender o que acontece entre ligar o PC e o primeiro byte de um sistema operacional rodar; saber o que a BIOS garante (e o que não garante) quando salta para 0000:7C00; escrever setores de boot que rodam sem DOS, falando só com a BIOS; ler setores do disquete com a INT 13h, convertendo LBA em cilindro, cabeça e setor; tentar de novo quando o disquete falha; entender o diretório do MINIFS e o setor de boot do MINIOS, que acha e carrega o kernel
+prerequisitos: aula12; aula14
 ---
 
 ## Um PC sem nada

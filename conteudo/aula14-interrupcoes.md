@@ -6,6 +6,7 @@ titulo: Interrupções, IVT, DOS e BIOS
 subtitulo: O que acontece de verdade quando você escreve INT 21h
 duracao: 75 min
 objetivos: entender o mecanismo de INT e IRET passo a passo; ler e interpretar a tabela de vetores de interrupção (IVT); diferenciar interrupções de software, de hardware e exceções da CPU; usar os serviços de teclado e vídeo do DOS e da BIOS; escolher entre DOS, BIOS e acesso direto ao hardware
+prerequisitos: aula12
 ---
 
 ## Uma chamada que não precisa saber o endereço

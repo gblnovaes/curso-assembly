@@ -6,6 +6,7 @@ titulo: O modo gráfico 13h
 subtitulo: 320 × 200 pixels, 256 cores, um byte por pixel em A000h
 duracao: 90 min
 objetivos: ligar e desligar o modo 13h pela INT 10h; entender como a tela fica guardada na memória a partir de A000:0000; calcular o offset de um pixel com y × 320 + x usando deslocamentos em vez de MUL; escrever pixels pela BIOS e direto na memória e comparar os custos; desenhar linhas horizontais com REP STOSB, linhas verticais e retângulos; conhecer a paleta padrão de 256 cores; escrever texto colorido no modo gráfico
+prerequisitos: aula05b; aula12
 ---
 
 ## Saindo do modo texto

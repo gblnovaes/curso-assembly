@@ -6,6 +6,7 @@ titulo: Parâmetros, BP e variáveis locais
 subtitulo: O quadro de pilha (stack frame) dos compiladores dos anos 90
 duracao: 65 min
 objetivos: passar parâmetros pela pilha; montar o quadro de pilha com PUSH BP / MOV BP,SP; acessar parâmetros com [BP+n] e variáveis locais com [BP-n]; limpar a pilha com RET n ou ADD SP,n; conhecer as convenções Pascal e C
+prerequisitos: aula09
 ---
 
 ## Por que passar parâmetros pela pilha
@@ -213,6 +214,29 @@ END inicio
 ```
 
 Atenção: dentro de `TROCA`, `[BX]` e `[SI]` usam o segmento **DS** (só BP usa SS). É por isso que os endereços dos dados funcionam.
+
+```previsao titulo="Qual parâmetro está em BP+4?" perguntar="CX"
+.MODEL SMALL
+.STACK 100h
+.CODE
+inicio: MOV  AX, 7
+        PUSH AX
+        MOV  AX, 2
+        PUSH AX
+        CALL F
+        MOV  CX, AX
+        MOV  AX, 4C00h
+        INT  21h
+F       PROC
+        PUSH BP
+        MOV  BP, SP
+        MOV  AX, [BP+4]
+        SUB  AX, [BP+6]
+        POP  BP
+        RET  4
+F       ENDP
+END inicio
+```
 
 ```quiz
 ? Depois de PUSH BP / MOV BP,SP em um procedimento near, onde está o 1º parâmetro (o último empilhado antes do CALL)?

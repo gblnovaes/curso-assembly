@@ -6,6 +6,7 @@ titulo: Projeto, o analisador de vetores
 subtitulo: Juntando tudo em um programa de verdade, procedimento por procedimento
 duracao: 90 min
 objetivos: planejar um programa maior dividindo-o em procedimentos com contratos claros; percorrer vetores para achar máximo, mínimo, soma e média; somar com 32 bits usando ADC; ordenar um vetor com o bubble sort; montar um relatório na tela e um gráfico de barras em modo texto
+prerequisitos: aula05b; aula07; aula10
 ---
 
 ## O projeto

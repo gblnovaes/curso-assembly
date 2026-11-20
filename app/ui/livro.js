@@ -49,7 +49,31 @@
     for (const c of todos) for (const s of c.busca) {
       indice.push({ cap: c, sec: s, nt: normalizar(s.titulo).t, n: normalizar(s.texto) });
     }
+    // as aulas do curso entram na mesma busca, uma entrada por seção (## e ###)
+    for (const a of (window.CURSO_CONTEUDO || { aulas: [] }).aulas) {
+      const cap = { id: a.id, titulo: a.titulo, aula: a };
+      for (const s of secoesDaAula(a)) indice.push({ cap, sec: s, nt: normalizar(s.titulo).t, n: normalizar(s.texto) });
+    }
     return indice;
+  }
+
+  const semTags = (x) => String(x || '').replace(/<[^>]+>/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
+  function secoesDaAula(a) {
+    const secs = [{ id: '', titulo: a.titulo, texto: (a.subtitulo || '') + ' ' + (a.objetivos || []).map(semTags).join(' ') }];
+    const add = (t) => { secs[secs.length - 1].texto += ' ' + t; };
+    for (const b of a.blocks) {
+      if (b.t === 'html') {
+        for (const p of b.html.split(/(<h[23] id="[^"]+">.*?<\/h[23]>)/)) {
+          const m = /^<h[23] id="([^"]+)">(.*?)<\/h[23]>$/.exec(p);
+          if (m) secs.push({ id: m[1], titulo: semTags(m[2]), texto: '' }); else add(semTags(p));
+        }
+      } else if (b.t === 'asm') add((b.titulo || '') + ' ' + b.code);
+      else if (b.t === 'diagrama') add((b.titulo || '') + ' ' + (b.text || ''));
+      else if (b.t === 'nota') add(semTags((b.titulo || '') + ' ' + b.html));
+      else if (b.t === 'ex') add('Exercício ' + b.ex.titulo + ' ' + semTags(b.ex.enunciado));
+      else if (b.t === 'quiz') add(b.qs.map(q => semTags(q.q)).join(' '));
+    }
+    return secs.map(x => ({ id: x.id, titulo: x.titulo, texto: x.texto.replace(/\s+/g, ' ').trim() })).filter(x => x.texto || x.id);
   }
 
   function buscar(q) {
@@ -131,6 +155,7 @@
     return c.parte === 'apendices' ? c.titulo : c.numero + '. ' + c.titulo;
   }
   function nomeCurto(c) {
+    if (c.aula) return 'Aula ' + (c.aula.rotulo || c.aula.numero);
     if (c.id === 'sumario') return 'Sumário';
     if (c.parte === 'apendices') return c.titulo.split(' · ')[0];
     return 'Cap. ' + c.numero;
@@ -142,7 +167,7 @@
     let consulta = '';
     let destaque = null;
 
-    const busca = h('input.ref-busca.livro-busca', { type: 'search', placeholder: 'Buscar no livro…', title: 'Busca em todos os capítulos e apêndices (ex.: INT 16H, AH=02H, 40:6C, scan code)' });
+    const busca = h('input.ref-busca.livro-busca', { type: 'search', placeholder: 'Buscar nas aulas e no livro…', title: 'Busca em todas as aulas e em todos os capítulos e apêndices (ex.: INT 16H, AH=02H, SHL, complemento de dois)' });
     const lista = h('div');
     const wIndice = janela('LIVRO.IDX', 'indice', [busca, lista]);
     const wLeitura = janela('BIOS.TXT', 'leitura', null);
@@ -243,13 +268,13 @@
       wLeitura.corpo.innerHTML = '';
       const el = h('div.aula.livro-res');
       const rs = buscar(q);
-      el.append(h('div.cab', null, h('div.num', null, 'Livro da BIOS · busca'), h('h1', null, rs.length ? rs.length + ' trecho' + (rs.length > 1 ? 's' : '') + ' para "' + q + '"' : 'Nada encontrado para "' + q + '"')));
+      el.append(h('div.cab', null, h('div.num', null, 'Busca nas aulas e no Livro da BIOS'), h('h1', null, rs.length ? rs.length + ' trecho' + (rs.length > 1 ? 's' : '') + ' para "' + q + '"' : 'Nada encontrado para "' + q + '"')));
       if (!rs.length) el.append(h('p', { html: 'Tente outra grafia ou um termo mais curto. Exemplos: <code>INT 13H</code>, <code>AH=02H</code>, <code>40:6C</code>, <code>scan code</code>, <code>Ctrl-Break</code>, <code>DMA</code>.' }));
       const MAX = 80;
       rs.slice(0, MAX).forEach(({ e, p }) => {
-        const dest = '#livro/' + e.cap.id + (e.sec.id ? '/' + e.sec.id : '');
+        const dest = (e.cap.aula ? '#aula/' : '#livro/') + e.cap.id + (e.sec.id ? '/' + e.sec.id : '');
         el.append(h('div.res-busca', {
-          onclick: () => { destaque = p.frase && conta(p.frase, e.n.t, 1) ? p.frase : p.todos; history.replaceState(null, '', '#livro/busca/' + encodeURIComponent(q)); location.hash = dest; }
+          onclick: () => { if (!e.cap.aula) destaque = p.frase && conta(p.frase, e.n.t, 1) ? p.frase : p.todos; history.replaceState(null, '', '#livro/busca/' + encodeURIComponent(q)); location.hash = dest; }
         },
           h('div.rt', { html: '<span class="rc">' + escHtml(nomeCurto(e.cap)) + '</span> ' + marcar(e.sec.id ? e.sec.titulo : e.cap.titulo, p.todos) }),
           h('div.rx', { html: trecho(e, p) })));

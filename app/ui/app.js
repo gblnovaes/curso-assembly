@@ -58,8 +58,8 @@
   function dicaStatus() {
     const v = location.hash.split('/')[0];
     if (v === '#lab') return 'F9 executa · F7 passo · F2 breakpoint · clique na tela para digitar';
-    if (v === '#aula') return 'Ctrl+→ próxima aula · ▶ Executar aqui roda o código passo a passo';
-    if (v === '#livro') return 'Ctrl+F busca no livro · os programas completos rodam com ▶ Executar aqui';
+    if (v === '#aula') return 'Ctrl+→ próxima aula · Ctrl+F busca nas aulas e no livro · ▶ Executar aqui roda o código passo a passo';
+    if (v === '#livro') return 'Ctrl+F busca nas aulas e no livro · os programas completos rodam com ▶ Executar aqui';
     return 'Curso Assembly 8086 · MASM/TASM · DOS 16 bits';
   }
 
@@ -284,7 +284,7 @@
     ['A~v~ançado', () => avancado.itensMenu(), 'avancado'],
     ['~L~aboratório', () => [['Abrir laboratório', () => { location.hash = '#lab'; }, 'F4'], ['Executar', () => { location.hash = '#lab'; lab.motor.executar(); }, 'F9'], ['Passo', () => { location.hash = '#lab'; lab.motor.passo(); }, 'F7'], ['Reiniciar', () => { location.hash = '#lab'; lab.motor.reiniciar(); }, 'Ctrl+F2'], ['Tela do usuário', () => { location.hash = '#lab'; lab.telaCheia(); }, 'Alt+F5'], null,
       ...EXEMPLOS.slice(0, 40).map(e => [e.titulo, () => { lab.carregar(e.codigo, { titulo: e.arquivo }); location.hash = '#lab'; }])]],
-    ['Livro\u00a0~B~IOS', () => [['Buscar no livro…', () => { location.hash = '#livro/busca'; }, 'Ctrl+F'], null,
+    ['Livro\u00a0~B~IOS', () => [['Buscar nas aulas e no livro…', () => { location.hash = '#livro/busca'; }, 'Ctrl+F'], ['Glossário', () => { location.hash = '#livro/apC'; }], null,
       ...window.Livro.capitulos.map(c => [window.Livro.rotulo(c), () => { location.hash = '#livro/' + c.id; }, c.id === 'sumario' ? 'F5' : null])]],
     ['~R~eferência', [['Livro da BIOS', () => { location.hash = '#livro'; }, 'F5'], null, ['Instruções', () => { location.hash = '#ref/instr'; }, 'F6'], ['INT 21h (DOS)', () => { location.hash = '#ref/int21'; }], ['BIOS', () => { location.hash = '#ref/bios'; }], ['Endereçamento e ciclos', () => { location.hash = '#ref/ciclos'; }], ['Tabela ASCII', () => { location.hash = '#ref/ascii'; }], ['Atalhos de teclado', () => { location.hash = '#ref/atalhos'; }]]],
     ['~P~rogresso', [['Ver progresso', () => { location.hash = '#progresso'; }]]],
@@ -334,7 +334,11 @@
     let nome = ({ aula: 'aulas', lab: 'lab', ref: 'ref', progresso: 'prog', livro: 'livro', avancado: 'avancado' })[v] || 'inicio';
     if (nome === 'avancado' && !window.Avancado.ativa()) nome = 'inicio';
     for (const k of Object.keys(views)) views[k].classList.toggle('ativo', k === nome);
-    if (nome === 'aulas') { if (arg !== aulaAtual || !wLeitura.corpo.firstChild) App.mostrarAula(arg || aulaAtual); }
+    if (nome === 'aulas') {
+      if (arg !== aulaAtual || !wLeitura.corpo.firstChild) App.mostrarAula(arg || aulaAtual);
+      // #aula/<id>/<seção>: vindo da busca, rola até a seção
+      if (resto[0]) { const alvo = wLeitura.corpo.querySelector('[id="' + resto[0].replace(/"/g, '') + '"]'); if (alvo) setTimeout(() => alvo.scrollIntoView({ block: 'start' }), 0); }
+    }
     if (nome === 'inicio') views.inicio.firstChild.render();
     if (nome === 'prog') views.prog.firstChild.render();
     if (nome === 'ref') ref.mostrar(arg);

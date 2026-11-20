@@ -183,6 +183,7 @@ No laboratório, a janela **Registradores** mostra cada registrador em hexadecim
 
 ```exercicio
 id: a01-1
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Monte AX por partes
 nivel: 1
 --- enunciado
@@ -191,7 +192,9 @@ Faça **AX** valer **0BEEFh** usando apenas instruções `MOV` de **8 bits** (co
         MOV  AH, 0
         MOV  AL, 0
 --- testes
-[{ "nome": "AX = BEEFh", "espera": { "AX": 48879 } }]
+[
+ {"nome": "AX = BEEFh", "espera": {"AX": 48879}}
+]
 --- dicas
 A parte alta de BEEFh é BEh e a parte baixa é EFh.
 Lembre do zero na frente de números hexa que começam com letra.
@@ -230,6 +233,7 @@ Se BH e CH já tiverem lixo, você precisa zerá-los com MOV BH,0 e MOV CH,0.
 
 ```exercicio
 id: a01-3
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Iniciais em CX e DX
 nivel: 1
 --- enunciado
@@ -237,7 +241,9 @@ Coloque o código ASCII da letra **'P'** em **CH**, de **'C'** em **CL**, de **'
 --- inicial
         MOV  CH, 0
 --- testes
-[{ "nome": "CX = 'PC' e DX = '86'", "espera": { "CX": 20547, "DX": 14390 } }]
+[
+ {"nome": "CX = 'PC' e DX = '86'", "espera": {"CX": 20547, "DX": 14390}}
+]
 --- dicas
 O montador entende 'P' como o número 50h. Escreva MOV CH,'P'.
 --- solucao

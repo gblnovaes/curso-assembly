@@ -6,8 +6,8 @@ Um curso de Assembly do Intel 8086 em português, do básico ao avançado, com a
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  92 aulas · 291 exercícios corrigidos automaticamente        ║
-║  433 perguntas de quiz · 7 jogos · um sistema operacional    ║
+║  96 aulas · 299 exercícios corrigidos automaticamente        ║
+║  445 perguntas de quiz · 7 jogos · um sistema operacional    ║
 ║  8086 em MASM/TASM · trilha avançada 386 em NASM             ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -66,21 +66,23 @@ A trilha avançada tem o seu próprio par, também do zero e separado do simulad
 | Módulo | Aulas |
 |--------|-------|
 | 0. Primeiros passos | 0. Bem-vindo ao IBM PC |
-| 1. Registradores e aritmética | 1. Os registradores do 8086 · 2. MOV e XCHG a fundo · 3. Aritmética: INC, DEC, ADD, SUB, ADC e SBB |
-| 2. FLAGS e decisões | 4. O registrador de FLAGS · 5. CMP e saltos condicionais |
+| 1. Registradores e aritmética | 1. Os registradores do 8086 · 2. MOV e XCHG a fundo · 3. Aritmética: INC, DEC, ADD, SUB, ADC, SBB, MUL e DIV |
+| 2. FLAGS e decisões | 4. O registrador de FLAGS · 5. CMP e saltos condicionais · 5B. Lógica bit a bit e deslocamentos |
 | 3. Memória e endereçamento | 6. Modos de endereçamento · 7. Vetores, LOOP, BYTE PTR e WORD PTR |
 | 4. Pilha e procedimentos | 8. A pilha: PUSH e POP · 9. CALL e RET: procedimentos · 10. Parâmetros, BP e variáveis locais · 11. Recursão e programas DOS completos |
 | 5. Segmentos e strings | 12. Segmentos a fundo · 13. Instruções de string |
 | 6. Interrupções | 14. Interrupções, IVT, DOS e BIOS · 15. Rotinas de interrupção e o timer |
 | 7. Otimização | 16. Contando ciclos e bytes · 17. Laços e memória |
-| 8. Projetos, depuração e aritmética com sinal | 18. Analisador de vetores · 19. Menus e entrada de dados · 20. Depuração · 21. Calculadora de 32 bits · 22. Aritmética com sinal |
+| 8. Projetos, depuração e aritmética com sinal | 18. Analisador de vetores · 19. Menus e entrada de dados · 20. Depuração · 21. Calculadora de 32 bits · 22. Aritmética com sinal · 22B. Aritmética com sinal na prática |
 | 9. Gráficos VGA e modo 13h | 23. O modo gráfico 13h · 24. Paleta, retraço e animação |
 | 10. Arquivos e o DOS por dentro | 25. Arquivos com handles · 26. PSP, linha de comando e memória |
 | 11. Programas residentes (TSR) | 27. Programas residentes · 28. O teclado por dentro e TSRs com tecla de atalho |
-| 12. Hardware direto e matemática | 29. O timer 8253 e o alto-falante · 30. BCD e ponto fixo · 31. O coprocessador 8087 |
+| 12. Hardware direto e matemática | 29. O timer 8253 e o alto-falante · 30. BCD: contas em decimal · 30B. Ponto fixo · 31. O coprocessador 8087 · 31B. O 8087 a fundo |
 | 13. Programação de jogos | 32. Fundamentos de jogos em DOS · 33. COBRA · 34. PONG · 35. Invasores do espaço · 36. Blocos que caem · 37. Paredão · 38. Sapo · 39. Labirinto |
 | 14. Construindo um sistema operacional | 40. Do botão de ligar ao setor de boot · 41. O kernel e a sua própria INT 21h · 42. Arquivos e o EXEC · 43. O shell do MINIOS · 44. Utilitários e o disquete completo do MINIOS |
 | 15. Macros, estruturas e mouse | 45. Macros e montagem condicional · 46. Estruturas: STRUC e campos · 47. O mouse: a INT 33h (com um programa de pintura) |
+
+As aulas com letra (5B, 22B, 30B e 31B) foram encaixadas depois, sem mudar a numeração das demais. O progresso salvo continua valendo.
 
 Para escrever novas aulas, veja o formato em [conteudo/LEIA-ME.md](conteudo/LEIA-ME.md).
 

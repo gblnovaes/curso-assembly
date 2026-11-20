@@ -122,7 +122,7 @@ A ordem **apagar → mover → desenhar** logo depois do retraço é o que evita
 
 ## A bola em ponto fixo
 
-Uma bola que só anda em pixels inteiros só tem poucas direções possíveis: (1, 1), (2, 1), (1, 2)... e uma velocidade de "2 e meio" pixels por quadro é impossível. A solução dos jogos dos anos 80 e 90 é o **ponto fixo** que você viu na [Aula 30](aula:aula30): a posição e a velocidade da bola são guardadas em **dezesseis avos de pixel**. A bola em x = 100 tem `bola_x = 1600`; uma velocidade de 2,5 pixels por quadro é `40`.
+Uma bola que só anda em pixels inteiros só tem poucas direções possíveis: (1, 1), (2, 1), (1, 2)... e uma velocidade de "2 e meio" pixels por quadro é impossível. A solução dos jogos dos anos 80 e 90 é o **ponto fixo** que você viu na [Aula 30B](aula:aula30b): a posição e a velocidade da bola são guardadas em **dezesseis avos de pixel**. A bola em x = 100 tem `bola_x = 1600`; uma velocidade de 2,5 pixels por quadro é `40`.
 
 ```diagrama titulo="bola_x em ponto fixo 12.4"
    bit: 15                         4 3       0

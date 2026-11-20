@@ -303,6 +303,7 @@ Uma rotina de interrupção de hardware **não pode** chamar o DOS (`INT 21h`). 
 
 ```exercicio
 id: a15-1
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: Dez tiques
 nivel: 2
 timer: sim
@@ -336,7 +337,9 @@ RELOGIO PROC FAR
 RELOGIO ENDP
 END inicio
 --- testes
-[{ "nome": "contador = 10", "espera": { "mem": { "contador": 10 }, "pilhaEquilibrada": true } }]
+[
+ {"nome": "contador = 10", "espera": {"mem": {"contador": 10}, "pilhaEquilibrada": true}}
+]
 --- dicas
 AX = 351Ch e INT 21h devolvem o vetor em ES:BX. Guarde com MOV WORD PTR antigo,BX e MOV WORD PTR antigo+2,ES.
 Para instalar: PUSH DS / MOV AX,CS / MOV DS,AX / MOV DX,OFFSET RELOGIO / MOV AX,251Ch / INT 21h / POP DS.
@@ -390,6 +393,7 @@ END inicio
 
 ```exercicio
 id: a15-2
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: O relógio parou
 nivel: 2
 timer: sim
@@ -439,7 +443,9 @@ TIMER   PROC FAR
 TIMER   ENDP
 END inicio
 --- testes
-[{ "nome": "o timer continua disparando até 10", "espera": { "mem": { "tiques": 10 } } }]
+[
+ {"nome": "o timer continua disparando até 10", "espera": {"mem": {"tiques": 10}}}
+]
 --- dicas
 Rode no laboratório com o painel IVT aberto: o contador para em 1. Quem está esperando um aviso de "terminei"?
 O PIC 8259A precisa receber o EOI: o valor 20h na porta 20h.

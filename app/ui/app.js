@@ -99,7 +99,7 @@
       for (const a of as) {
         const p = progressoAula(a);
         const chk = p.concluida ? '[√]' : (p.lida || p.feitos || p.qResp) ? '[·]' : '[ ]';
-        const it = h('div.aula-it' + (a.id === aulaAtual ? '.atual' : ''), { onclick: () => { location.hash = '#aula/' + a.id; }, title: a.titulo }, h('span.chk', null, chk), h('span.tt', null, a.numero + '. ' + a.titulo));
+        const it = h('div.aula-it' + (a.id === aulaAtual ? '.atual' : ''), { onclick: () => { location.hash = '#aula/' + a.id; }, title: a.titulo }, h('span.chk', null, chk), h('span.tt', null, (a.rotulo || a.numero) + '. ' + a.titulo));
         m.append(it);
       }
       indiceEl.append(m);
@@ -119,7 +119,7 @@
     const scroll = wLeitura.corpo.scrollTop;
     aulaAtual = a.id;
     store.set('ultimaAula', a.id);
-    wLeitura.setTitulo('AULA' + String(a.numero).padStart(2, '0') + '.TXT');
+    wLeitura.setTitulo('AULA' + String((a.rotulo || a.numero)).padStart(2, '0') + '.TXT');
     wLeitura.corpo.innerHTML = '';
     const el = window.Aula.renderAula(a, modulos);
     const caps = window.Livro ? window.Livro.paraAula(a.id) : [];
@@ -129,11 +129,11 @@
     const ant = aulas[idx - 1], prox = aulas[idx + 1];
     const lidas = store.get('lidas', {});
     el.append(h('div', { style: { marginTop: '2em', borderTop: '2px solid var(--win-frame)', paddingTop: '.8em', display: 'flex', flexWrap: 'wrap', alignItems: 'center' } },
-      ant ? h('button.btn.sec', { onclick: () => { location.hash = '#aula/' + ant.id; } }, '◄ ' + ant.numero + '. ' + ant.titulo) : null,
+      ant ? h('button.btn.sec', { onclick: () => { location.hash = '#aula/' + ant.id; } }, '◄ ' + (ant.rotulo || ant.numero) + '. ' + ant.titulo) : null,
       h('button.btn', {
         onclick: () => { const l = store.get('lidas', {}); l[a.id] = !l[a.id]; store.set('lidas', l); App.mostrarAula(a.id, true); App.atualizarIndice(); }
       }, lidas[a.id] ? '√ Aula marcada como lida' : 'Marcar como lida'),
-      prox ? h('button.btn', { onclick: () => { const l = store.get('lidas', {}); l[a.id] = true; store.set('lidas', l); location.hash = '#aula/' + prox.id; } }, prox.numero + '. ' + prox.titulo + ' ►') : null));
+      prox ? h('button.btn', { onclick: () => { const l = store.get('lidas', {}); l[a.id] = true; store.set('lidas', l); location.hash = '#aula/' + prox.id; } }, (prox.rotulo || prox.numero) + '. ' + prox.titulo + ' ►') : null));
     wLeitura.corpo.append(el);
     wLeitura.corpo.scrollTop = manterScroll ? scroll : 0;
     App.atualizarIndice();
@@ -154,7 +154,7 @@
     let n = 0;
     for (const b of a.blocks) if (b.t === 'asm' && /END\s+\w+/i.test(b.code) && /\.MODEL|SEGMENT/i.test(b.code)) {
       n++;
-      EXEMPLOS.push({ id: a.id + '-' + n, aula: a, titulo: 'Aula ' + a.numero + ': ' + (b.titulo || 'exemplo ' + n), codigo: b.code, arquivo: (b.titulo || 'A' + a.numero + 'EX' + n).toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 8) + '.ASM' });
+      EXEMPLOS.push({ id: a.id + '-' + n, aula: a, titulo: 'Aula ' + (a.rotulo || a.numero) + ': ' + (b.titulo || 'exemplo ' + n), codigo: b.code, arquivo: (b.titulo || 'A' + (a.rotulo || a.numero) + 'EX' + n).toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 8) + '.ASM' });
     }
   }
 
@@ -186,10 +186,10 @@
           h('p', null, 'Um curso interativo de Assembly para o processador Intel 8086, o coração do IBM PC. Você vai escrever programas reais em sintaxe MASM/TASM, executá-los em um 8086 simulado com DOS e BIOS, e acompanhar cada registrador, flag e byte da memória, como os programadores faziam com o DEBUG e o Turbo Debugger.'),
           h('div.cartao', null,
             h('div', { style: { color: 'var(--head2)' } }, 'Continue de onde parou:'),
-            h('div', null, 'Aula ' + a.numero + ': ' + a.titulo),
+            h('div', null, 'Aula ' + (a.rotulo || a.numero) + ': ' + a.titulo),
             h('div', { style: { marginTop: '.5em' } },
               h('button.btn', { onclick: () => { location.hash = '#aula/' + a.id; } }, '► Continuar'),
-              prox !== a ? h('button.btn.sec', { onclick: () => { location.hash = '#aula/' + prox.id; } }, 'Próxima pendente: ' + prox.numero) : null,
+              prox !== a ? h('button.btn.sec', { onclick: () => { location.hash = '#aula/' + prox.id; } }, 'Próxima pendente: ' + (prox.rotulo || prox.numero)) : null,
               h('button.btn.sec', { onclick: () => { location.hash = '#lab'; } }, 'Laboratório'),
               h('button.btn.sec', { onclick: () => { location.hash = '#livro'; } }, 'Livro da BIOS')))),
         h('div', null,
@@ -211,7 +211,7 @@
       const linhas = aulas.map(a => {
         const p = progressoAula(a);
         const td = (rot, v) => '<td data-label="' + rot + '"><div>' + v + '</div></td>';
-        return '<tr>' + td('Aula', '<a href="#aula/' + a.id + '">' + (p.concluida ? '√ ' : '') + a.numero + '. ' + a.titulo + '</a>') + td('Lida', p.lida ? 'sim' : '—') + td('Quiz', p.qTot ? p.qOk + '/' + p.qTot + (p.qResp < p.qTot ? ' (' + (p.qTot - p.qResp) + ' sem resposta)' : '') : '—') + td('Exercícios', p.exs ? p.feitos + '/' + p.exs : '—') + '</tr>';
+        return '<tr>' + td('Aula', '<a href="#aula/' + a.id + '">' + (p.concluida ? '√ ' : '') + (a.rotulo || a.numero) + '. ' + a.titulo + '</a>') + td('Lida', p.lida ? 'sim' : '—') + td('Quiz', p.qTot ? p.qOk + '/' + p.qTot + (p.qResp < p.qTot ? ' (' + (p.qTot - p.qResp) + ' sem resposta)' : '') : '—') + td('Exercícios', p.exs ? p.feitos + '/' + p.exs : '—') + '</tr>';
       }).join('');
       const div = h('div.aula', { style: { maxWidth: 'none' } });
       div.innerHTML = '<h2>Progresso por aula</h2><div class="tabela ref-tab"><table><thead><tr><th>Aula</th><th>Lida</th><th>Quiz</th><th>Exercícios</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' +
@@ -280,7 +280,7 @@
   const MENUS = [
     ['≡', [['Sobre…', sobre], ['Opções…', opcoes]]],
     ['~A~rquivo', [['Novo programa', () => { location.hash = '#lab'; lab.novo(); }], ['Abrir .ASM…', () => { location.hash = '#lab'; lab.abrir(); }], ['Salvar .ASM', () => lab.salvar()], null, ['Tela inicial', () => { location.hash = '#inicio'; }]]],
-    ['A~u~las', () => aulas.map(a => [a.numero + '. ' + a.titulo, () => { location.hash = '#aula/' + a.id; }])],
+    ['A~u~las', () => aulas.map(a => [(a.rotulo || a.numero) + '. ' + a.titulo, () => { location.hash = '#aula/' + a.id; }])],
     ['A~v~ançado', () => avancado.itensMenu(), 'avancado'],
     ['~L~aboratório', () => [['Abrir laboratório', () => { location.hash = '#lab'; }, 'F4'], ['Executar', () => { location.hash = '#lab'; lab.motor.executar(); }, 'F9'], ['Passo', () => { location.hash = '#lab'; lab.motor.passo(); }, 'F7'], ['Reiniciar', () => { location.hash = '#lab'; lab.motor.reiniciar(); }, 'Ctrl+F2'], ['Tela do usuário', () => { location.hash = '#lab'; lab.telaCheia(); }, 'Alt+F5'], null,
       ...EXEMPLOS.slice(0, 40).map(e => [e.titulo, () => { lab.carregar(e.codigo, { titulo: e.arquivo }); location.hash = '#lab'; }])]],
@@ -421,7 +421,22 @@
   }
 
   // ---------------- inicialização ----------------
+  // Aulas divididas em duas partes (22 → 22/22B, 30 → 30/30B, 31 → 31/31B): os quizzes que
+  // foram para a parte B levam junto as respostas salvas, e a leitura vale para as duas partes.
+  function migrarProgresso() {
+    if (store.get('versaoProgresso', 0) >= 1) return;
+    const q = store.get('quiz', {});
+    const mover = { 'aula30:q1': 'aula30b:q0', 'aula31:q1': 'aula31b:q0', 'aula31:q2': 'aula31b:q1' };
+    for (const [de, para] of Object.entries(mover)) if (q[de]) { q[para] = q[de]; delete q[de]; }
+    store.set('quiz', q);
+    const l = store.get('lidas', {});
+    for (const id of ['aula22', 'aula30', 'aula31']) if (l[id]) l[id + 'b'] = true;
+    store.set('lidas', l);
+    store.set('versaoProgresso', 1);
+  }
+
   App.iniciar = function () {
+    migrarProgresso();
     aplicarOpcoes();
     const app = document.getElementById('app');
     const bar = h('div#menubar');

@@ -283,7 +283,12 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "conta = 5", "espera": { "mem": { "conta": 5 } } }]
+[
+ {"nome": "conta = 5", "espera": {"mem": {"conta": 5}}},
+ {"nome": "nenhum 5", "setup": {"v": [0, 1, 2, 3, 4, 6, 7, 8, 9, 0]}, "espera": {"mem": {"conta": 0}}},
+ {"nome": "só cincos", "setup": {"v": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]}, "espera": {"mem": {"conta": 10}}},
+ {"nome": "dois cincos", "setup": {"v": [1, 5, 2, 5, 3, 4, 6, 7, 8, 9]}, "espera": {"mem": {"conta": 2}}}
+]
 --- dicas
 SI aponta para v, CX = N, BX conta. Compare BYTE PTR [SI] com 5.
 --- solucao
@@ -317,6 +322,7 @@ END inicio
 
 ```exercicio
 id: a07-2
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Preencha de 1 a 10
 nivel: 2
 --- enunciado
@@ -337,7 +343,9 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "tab = 1..10", "espera": { "mem": { "tab": [1,2,3,4,5,6,7,8,9,10] } } }]
+[
+ {"nome": "tab = 1..10", "espera": {"mem": {"tab": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}}}
+]
 --- dicas
 Use AX como valor (começa em 1) e SI como ponteiro; avance SI de 2 em 2.
 MOV [SI],AX grava uma word porque AX tem 16 bits.
@@ -391,7 +399,10 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "imprime YLBMESSA", "espera": { "saida": "YLBMESSA", "mem": { "palavra": ["Y","L","B","M","E","S","S","A"] } } }]
+[
+ {"nome": "imprime YLBMESSA", "espera": {"saida": "YLBMESSA", "mem": {"palavra": ["Y", "L", "B", "M", "E", "S", "S", "A"]}}},
+ {"nome": "PROGRAMA vira AMARGORP", "setup": {"palavra": "PROGRAMA"}, "espera": {"saida": "AMARGORP", "mem": {"palavra": ["A", "M", "A", "R", "G", "O", "R", "P"]}}}
+]
 --- dicas
 SI = início, DI = início + TAM − 1.
 Enquanto SI < DI: troque [SI] e [DI] passando por AL e AH, INC SI, DEC DI.
@@ -451,7 +462,11 @@ inicio:
         INT  21h
 END inicio
 --- testes
-[{ "nome": "soma = 124", "espera": { "mem": { "soma": 124 } } }]
+[
+ {"nome": "soma = 124", "espera": {"mem": {"soma": 124}}},
+ {"nome": "todos ímpares", "setup": {"w": [1, 3, 5, 7, 9, 11, 13]}, "espera": {"mem": {"soma": 0}}},
+ {"nome": "todos pares", "setup": {"w": [2, 4, 6, 8, 10, 12, 1000]}, "espera": {"mem": {"soma": 1042}}}
+]
 --- dicas
 Carregue cada elemento em AX, teste com TEST AX,1 e pule a soma se der ímpar (JNZ).
 --- solucao

@@ -218,7 +218,7 @@ function parseLesson(file, texto) {
   flush();
   const objetivos = (meta.objetivos || '').split(';').map(s => s.trim()).filter(Boolean).map(inline);
   return {
-    id: meta.id, numero: +meta.numero, modulo: +meta.modulo, titulo: meta.titulo, subtitulo: meta.subtitulo || '',
+    id: meta.id, numero: +meta.numero, rotulo: meta.rotulo || String(+meta.numero), modulo: +meta.modulo, titulo: meta.titulo, subtitulo: meta.subtitulo || '',
     duracao: meta.duracao || '', objetivos, blocks,
     secoes: blocks.filter(b => b.t === 'html').flatMap(b => [...b.html.matchAll(/<h2 id="([^"]+)">(.*?)<\/h2>/g)].map(m => ({ id: m[1], titulo: m[2].replace(/<[^>]+>/g, '') })))
   };

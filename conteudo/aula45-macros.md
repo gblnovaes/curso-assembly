@@ -492,6 +492,7 @@ ENDM
 
 ```exercicio
 id: a45-2
+fixo: sem entrada: o enunciado pede valores fixos
 titulo: Tabela de cubos com REPT
 nivel: 2
 --- enunciado
@@ -510,7 +511,9 @@ inicio: MOV  AX, @DATA
         INT  21h
 END inicio
 --- testes
-[{ "nome": "cubos de 0 a 9", "espera": { "mem": { "cubos": [0, 1, 8, 27, 64, 125, 216, 343, 512, 729] } } }]
+[
+ {"nome": "cubos de 0 a 9", "espera": {"mem": {"cubos": [0, 1, 8, 27, 64, 125, 216, 343, 512, 729]}}}
+]
 --- dicas
 Comece com cubos LABEL WORD, para o nome apontar para o início da tabela.
 Depois: n = 0, REPT 10, DW n*n*n, n = n + 1, ENDM.

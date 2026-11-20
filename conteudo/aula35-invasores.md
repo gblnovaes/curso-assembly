@@ -666,7 +666,7 @@ MOVE_DISCO PROC
         JZ   @@fim
 ```
 
-O disco aparece a cada 9 a 17 segundos (600 a 1.199 quadros a 70 por segundo), entra pela esquerda ou pela direita e anda **meio pixel por quadro**. Como não existe meio pixel, `disco_fase` alterna entre 0 e 1 com `XOR` e o disco só anda quando ela vira 1: um quadro sim, outro não. É a forma mais barata de ter velocidades fracionárias (a aula de [ponto fixo](aula:aula30) mostra a forma geral).
+O disco aparece a cada 9 a 17 segundos (600 a 1.199 quadros a 70 por segundo), entra pela esquerda ou pela direita e anda **meio pixel por quadro**. Como não existe meio pixel, `disco_fase` alterna entre 0 e 1 com `XOR` e o disco só anda quando ela vira 1: um quadro sim, outro não. É a forma mais barata de ter velocidades fracionárias (a aula de [ponto fixo](aula:aula30b) mostra a forma geral).
 
 O prêmio é sorteado da tabela `premio_disco` (50, 100, 150, 300).
 

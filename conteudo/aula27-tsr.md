@@ -418,6 +418,7 @@ Antes da INT 2Fh se popularizar, muitos TSRs usavam uma **assinatura**: um texto
 
 ```exercicio
 id: a27-1
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: Contador residente
 nivel: 2
 --- enunciado
@@ -443,7 +444,9 @@ instalar:
         MOV  AX, 4C00h
         INT  21h
 --- testes
-[{ "nome": "10 tiques contados depois de instalado", "residente": { "passos": 31500 }, "espera": { "status": "residente", "mem": { "tiques": 10 } } }]
+[
+ {"nome": "10 tiques contados depois de instalado", "residente": {"passos": 31500}, "espera": {"status": "residente", "mem": {"tiques": 10}}}
+]
 --- dicas
 A rotina precisa só de duas instruções: INC CS:tiques e JMP CS:antigo. Sem o CS:, o INC alteraria a memória de outro programa.
 Guardar: MOV AX,351Ch / INT 21h / MOV WORD PTR antigo,BX / MOV WORD PTR antigo+2,ES.
@@ -478,6 +481,7 @@ instalar:
 
 ```exercicio
 id: a27-2
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: Quantos parágrafos?
 nivel: 1
 --- enunciado
@@ -516,7 +520,9 @@ instalar:
         MOV  AX, 3100h
         INT  21h
 --- testes
-[{ "nome": "DX cobre a parte residente inteira", "espera": { "status": "residente", "DX": 19 } }]
+[
+ {"nome": "DX cobre a parte residente inteira", "espera": {"status": "residente", "DX": 19}}
+]
 --- dicas
 fim_res está no offset 0126h (294 bytes, contando o PSP). Quantos parágrafos de 16 bytes são necessários para guardar 294 bytes?
 SHR divide e joga fora o resto: 294 / 16 = 18, que guarda só 288 bytes. Os últimos 6 bytes da rotina (o POP AX e o JMP CS:antigo!) seriam devolvidos ao DOS.
@@ -640,6 +646,7 @@ instalar:
 
 ```exercicio
 id: a27-4
+fixo: sem entrada: confere a IVT e o ambiente do DOS
 titulo: Não se instale duas vezes
 nivel: 3
 exigir: IRET
@@ -700,7 +707,9 @@ instalar:
 
 ja_esta DB   'Ja estou instalado.', 13, 10, '$'
 --- testes
-[{ "nome": "responde só ao número C0h", "espera": { "status": "residente", "mem": { "antes": 0, "depois": 255, "outro": 0 } } }]
+[
+ {"nome": "responde só ao número C0h", "espera": {"status": "residente", "mem": {"antes": 0, "depois": 255, "outro": 0}}}
+]
 --- dicas
 Comece com CMP AH,0C0h. Se for diferente, salte para o JMP CS:antigo2F que já existe.
 Se for igual: MOV AL,0FFh e IRET. Essa rotina responde em vez de passar a vez.

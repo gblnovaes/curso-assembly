@@ -2,10 +2,10 @@
 id: aula03
 numero: 3
 modulo: 1
-titulo: Aritmética: INC, DEC, ADD, SUB, ADC e SBB
-subtitulo: Somar e subtrair em 8, 16 e 32 bits
-duracao: 55 min
-objetivos: somar e subtrair com ADD e SUB; incrementar e decrementar com INC e DEC; entender o que acontece quando o resultado não cabe (a "volta" do contador); somar números de 32 bits com ADC e SBB; multiplicar por constantes pequenas usando só somas
+titulo: Aritmética: INC, DEC, ADD, SUB, ADC, SBB, MUL e DIV
+subtitulo: Somar e subtrair em 8, 16 e 32 bits, multiplicar e dividir
+duracao: 70 min
+objetivos: somar e subtrair com ADD e SUB; incrementar e decrementar com INC e DEC; entender o que acontece quando o resultado não cabe (a "volta" do contador); somar números de 32 bits com ADC e SBB; multiplicar por constantes pequenas usando só somas; multiplicar e dividir sem sinal com MUL e DIV
 ---
 
 ## ADD e SUB
@@ -108,7 +108,40 @@ Multiplicar é caro no 8086 (`MUL` leva mais de 100 ciclos). Para constantes peq
         ADD  AX, BX      ; AX = 5x  -> 35
 ```
 
-Somar um registrador consigo mesmo dobra o valor. Com duplicações e somas dá para multiplicar por qualquer constante. No Módulo 7 vamos fazer isso ainda mais rápido com deslocamentos (`SHL`).
+Somar um registrador consigo mesmo dobra o valor. Com duplicações e somas dá para multiplicar por qualquer constante. Na [Aula 5B](aula:aula05b) vamos fazer isso ainda mais rápido com deslocamentos (`SHL`).
+
+## MUL e DIV: o básico
+
+Quando a constante não é pequena, ou quando os dois números só são conhecidos durante a execução, o 8086 tem `MUL` (multiplicar) e `DIV` (dividir), ambas **sem sinal**. Elas são diferentes de `ADD`: têm um **só operando**, porque o outro número e o lugar do resultado são fixos.
+
+| Instrução | Faz | Resultado |
+|---|---|---|
+| `MUL fonte8` | AL × fonte | AX (16 bits) |
+| `MUL fonte16` | AX × fonte | DX:AX (32 bits) |
+| `DIV fonte8` | AX ÷ fonte | quociente em AL, resto em AH |
+| `DIV fonte16` | DX:AX ÷ fonte | quociente em AX, resto em DX |
+
+A fonte é um registrador ou uma variável, **nunca um número**: `MUL 10` não existe no 8086. Ponha o 10 num registrador primeiro.
+
+```asm executar titulo="MUL e DIV de 16 bits"
+        MOV  AX, 300
+        MOV  BX, 250
+        MUL  BX          ; DX:AX = 300 x 250 = 75000 -> DX = 1, AX = 9464
+        MOV  CX, 1000
+        DIV  CX          ; DX:AX / 1000 -> AX = 75 (quociente), DX = 0 (resto)
+        MOV  AX, 47
+        MOV  DX, 0       ; DIV de 16 bits divide DX:AX: zere DX antes!
+        MOV  BX, 10
+        DIV  BX          ; AX = 4, DX = 7
+```
+
+Repare no `MOV DX, 0` antes da segunda divisão. A `DIV` de 16 bits sempre usa **DX:AX** como dividendo; se DX tiver lixo de uma conta anterior (o `MUL` acabou de escrever nele!), o resultado sai errado. Esquecer de zerar DX é o erro número um com `DIV`.
+
+:::atencao Divisão por zero e quociente grande
+Se o divisor for zero, ou se o quociente não couber no destino (por exemplo, 1000 ÷ 2 com `DIV` de 8 bits: 500 não cabe em AL), o processador dispara a **interrupção 0** e o DOS encerra o programa com "Divide overflow". Na Aula 21 você aprende a evitar isso e a dividir números de 32 bits; a Aula 22 traz `IMUL` e `IDIV`, as versões com sinal.
+:::
+
+`MUL` é lenta (70 a 143 ciclos) e `DIV` mais ainda (80 a 162), por isso para constantes pequenas as somas da seção anterior continuam valendo a pena.
 
 ## NEG: trocar o sinal
 
@@ -144,6 +177,24 @@ Para completar, `NEG destino` calcula `0 − destino`. Por enquanto, pense nela 
 - SUB total, 5
 + ADD total, parcial
 > Duas memórias na mesma instrução não existem no 8086.
+
+? Depois de MOV AX,7 / MOV BL,2 / MUL BL, quanto vale AX?
+- 7
++ 14
+- 0
+> MUL com fonte de 8 bits multiplica AL pela fonte e põe o resultado inteiro em AX.
+
+? Antes de DIV BX (16 bits), por que se zera DX?
+- Porque DIV altera DX antes de começar.
++ Porque o dividendo é DX:AX, e lixo em DX entra na conta.
+- Porque DX guarda o divisor.
+> A DIV de 16 bits divide o número de 32 bits DX:AX. Com DX = 0, o dividendo é só AX.
+
+? Qual destas linhas é válida no 8086?
+- MUL 10
+- DIV 3
++ MUL BX
+> MUL e DIV não aceitam número imediato: a fonte é sempre um registrador ou uma variável.
 ```
 
 ## Exercícios
@@ -236,10 +287,58 @@ Subtraia **CX:BX** de **DX:AX** (DX:AX = DX:AX − CX:BX). Use `SUB` e `SBB`.
         SBB  DX, CX
 ```
 
+```exercicio
+id: a03-5
+titulo: Área do retângulo
+nivel: 1
+exigir: MUL
+--- enunciado
+**AX** traz a largura e **BX** a altura de um retângulo. Calcule a área com `MUL` e deixe o resultado de 32 bits em **DX:AX**. BX não pode mudar.
+--- inicial
+; DX:AX = AX * BX
+--- testes
+[
+ { "nome": "7 x 6", "setup": { "AX": 7, "BX": 6 }, "espera": { "DX": 0, "AX": 42, "BX": 6 } },
+ { "nome": "300 x 250 = 75000", "setup": { "AX": 300, "BX": 250 }, "espera": { "DX": 1, "AX": 9464, "BX": 250 } },
+ { "nome": "65535 x 2", "setup": { "AX": 65535, "BX": 2 }, "espera": { "DX": 1, "AX": 65534, "BX": 2 } }
+]
+--- dicas
+MUL BX já multiplica AX por BX e põe o resultado em DX:AX.
+--- solucao
+        MUL  BX
+```
+
+```exercicio
+id: a03-6
+titulo: Minutos e segundos
+nivel: 2
+exigir: DIV
+--- enunciado
+**AX** traz um tempo em segundos. Calcule quantos **minutos** completos isso dá (em **CX**) e quantos **segundos** sobram (em **DX**). Exemplo: 125 segundos são 2 minutos e 5 segundos. DX pode chegar com lixo.
+--- inicial
+; CX = AX / 60, DX = AX mod 60
+--- testes
+[
+ { "nome": "125 s = 2 min 5 s", "setup": { "AX": 125, "DX": 4660 }, "espera": { "CX": 2, "DX": 5 } },
+ { "nome": "3600 s = 60 min 0 s", "setup": { "AX": 3600, "DX": 65535 }, "espera": { "CX": 60, "DX": 0 } },
+ { "nome": "59 s = 0 min 59 s", "setup": { "AX": 59, "DX": 1 }, "espera": { "CX": 0, "DX": 59 } },
+ { "nome": "65535 s", "setup": { "AX": 65535, "DX": 7 }, "espera": { "CX": 1092, "DX": 15 } }
+]
+--- dicas
+Ponha 60 em um registrador (BX, por exemplo). MUL e DIV não aceitam número direto.
+Zere DX antes de DIV BX. Depois, o quociente está em AX (copie para CX) e o resto já está em DX.
+--- solucao
+        MOV  BX, 60
+        MOV  DX, 0
+        DIV  BX
+        MOV  CX, AX
+```
+
 :::resumo
 - `ADD` e `SUB` guardam o resultado no destino; não existe memória com memória.
 - Resultados que não cabem dão a volta (módulo 256 ou 65.536) e o bit extra vai para CF.
 - `INC`/`DEC` somam/subtraem 1 sem alterar CF.
 - Números de 32 bits: par DX:AX; `ADD`+`ADC` para somar, `SUB`+`SBB` para subtrair.
 - Somar um valor a ele mesmo dobra: base para multiplicar por constantes.
+- `MUL fonte` multiplica AL ou AX pela fonte (resultado em AX ou DX:AX); `DIV fonte` divide AX ou DX:AX (quociente em AL/AX, resto em AH/DX). Zere DX antes da `DIV` de 16 bits.
 :::

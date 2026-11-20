@@ -195,6 +195,7 @@ Cada programa abaixo tem **um** bug clássico. Use o laboratório (botão **Depu
 
 ```exercicio
 id: a20-1
+fixo: sem entrada: conserte o programa dado
 titulo: A mensagem que virou lixo
 nivel: 1
 --- enunciado
@@ -212,7 +213,9 @@ inicio: MOV  DX, OFFSET msg
         INT  21h
 END inicio
 --- testes
-[{ "nome": "imprime a mensagem", "espera": { "saida": "Ola, mundo!" } }]
+[
+ {"nome": "imprime a mensagem", "espera": {"saida": "Ola, mundo!"}}
+]
 --- dicas
 Veja a aba Mensagens do laboratório depois de rodar.
 Em um programa .EXE, para onde DS aponta no começo?
@@ -291,6 +294,7 @@ END inicio
 
 ```exercicio
 id: a20-3
+fixo: sem entrada: conserte o programa dado
 titulo: O retorno perdido
 nivel: 2
 --- enunciado
@@ -317,7 +321,9 @@ DOBRA_SOMA PROC
 DOBRA_SOMA ENDP
 END inicio
 --- testes
-[{ "nome": "DX = 25, BX e CX preservados", "espera": { "DX": 25, "BX": 10, "CX": 5, "pilhaEquilibrada": true } }]
+[
+ {"nome": "DX = 25, BX e CX preservados", "espera": {"DX": 25, "BX": 10, "CX": 5, "pilhaEquilibrada": true}}
+]
 --- dicas
 Execute com F7 e observe o painel da pilha logo antes do RET. O que está no topo?
 Cada PUSH precisa de um POP, em ordem inversa.

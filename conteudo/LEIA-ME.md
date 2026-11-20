@@ -31,6 +31,7 @@ objetivos: primeiro objetivo; segundo objetivo; terceiro objetivo
 - `numero`: ordem da aula no índice.
 - `modulo`: número de um módulo de `modulos.json`. Um módulo que tem aulas deixa de aparecer como "em breve".
 - `objetivos`: separados por ponto e vírgula.
+- `rotulo` (opcional): o número que aparece na tela, quando ele não é um inteiro. Uma aula encaixada entre outras usa `numero` fracionário para a ordem e `rotulo` para o nome, por exemplo `numero: 5.5` e `rotulo: 5B`. Assim a numeração das aulas seguintes não muda.
 
 ## Texto
 
@@ -172,6 +173,7 @@ Cabeçalho do exercício:
 - `maxBytes`: tamanho máximo do código, em bytes.
 - `maxCiclos`: ciclos máximos em cada teste.
 - `maxPassos`: limite de instruções antes de considerar laço infinito (padrão 3.000.000).
+- `fixo: motivo`: declara que o exercício não tem entrada de propósito (um estado de flags, uma tela, um programa para consertar). Sem essa linha, `npm test` exige que **pelo menos um teste mude a entrada** (com `setup`, `entrada`, `arquivos`, `linhaComando`, `mouse` ou `residente`); senão gravar a resposta pronta, como `MOV conta, 5`, passaria. Para variar dados fixos do programa, troque as variáveis no `setup` de um segundo teste.
 - `timer: sim`: liga a interrupção do timer (IRQ 0 a cada 3.000 instruções; muda proporcionalmente se o programa reprogramar o canal 0 do PIT).
 
 Cada teste é um objeto JSON:

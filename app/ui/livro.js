@@ -209,7 +209,7 @@
           h('h1', null, c.titulo)));
         const rel = c.aulas.map(a => aulas.find(x => x.id === a)).filter(Boolean);
         if (rel.length) el.append(h('div.objetivos', null, h('div.tt', null, 'Aulas do curso ligadas a este capítulo:'),
-          h('ul', { html: rel.map(a => '<li><a href="#aula/' + a.id + '">Aula ' + a.numero + ': ' + escHtml(a.titulo) + '</a></li>').join('') })));
+          h('ul', { html: rel.map(a => '<li><a href="#aula/' + a.id + '">Aula ' + (a.rotulo || a.numero) + ': ' + escHtml(a.titulo) + '</a></li>').join('') })));
         if (c.secoes.length > 3) {
           const d = h('details.livro-secoes', null, h('summary', null, 'Seções deste capítulo (' + c.secoes.length + ')'),
             h('ul', { html: c.secoes.map(s => '<li><a href="#livro/' + c.id + '/' + s.id + '">' + escHtml(s.titulo) + '</a></li>').join('') }));
